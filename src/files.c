@@ -38,25 +38,6 @@ const
 #endif
 #endif
 
-#define VULTURE_BONE_ENUMERATE "1"
-#define VULTURE_SAVE_ENUMERATE "1"
-#ifdef __amd64
-  #define VULTURE_SAVE_ARCH "amd64"
-#elif __x86_64
-  #define VULTURE_SAVE_ARCH "x86_64"
-#else
-  #define VULTURE_SAVE_ARCH "i386"
-#endif
-#ifdef WIN32
-  #define VULTURE_SAVE_OS "windows"
-#elif __linux__
-  #define VULTURE_SAVE_OS "linux"
-#elif __APPLE__
-  #define VULTURE_SAVE_OS "osx"
-#else
-  #error "Unknown Save Platform!"
-#endif
-
 #if defined(UNIX) && defined(QT_GRAPHICS)
 #include <sys/types.h>
 #include <dirent.h>
@@ -84,7 +65,7 @@ static char fqn_filename_buffer[FQN_NUMBUF][FQN_MAX_FILENAME];
 #endif
 
 #if !defined(MFLOPPY) && !defined(VMS) && !defined(WIN32)
-char bones[] = "bones/vvvv/ooooooo/aaaaaa/bonesnn.xxx";
+char bones[] = "bonesnn.xxx";
 char lock[PL_NSIZ + 14] = "1lock"; /* long enough for uid+name+.99 */
 #else
 #if defined(MFLOPPY)
@@ -96,7 +77,7 @@ char bones[] = "bonesnn.xxx;1";
 char lock[PL_NSIZ + 17] = "1lock"; /* long enough for _uid+name+.99;1 */
 #endif
 #if defined(WIN32)
-char bones[] = "bones/vvvv/ooooooo/aaaaaa/bonesnn.xxx";
+char bones[] = "bonesnn.xxx";
 char lock[PL_NSIZ + 25]; /* long enough for username+-+name+.99 */
 #endif
 #endif
@@ -714,7 +695,7 @@ d_level *lev;
     s_level *sptr;
     char *dptr;
 
-    Sprintf(file, "bones/v%s/%s/%s/bon%c%s", VULTURE_BONE_ENUMERATE, VULTURE_SAVE_OS, VULTURE_SAVE_ARCH, dungeons[lev->dnum].boneid,
+    Sprintf(file, "bon%c%s", dungeons[lev->dnum].boneid,
             In_quest(lev) ? urole.filecode : "0");
     dptr = eos(file);
     if ((sptr = Is_special(lev)) != 0)
@@ -916,12 +897,12 @@ boolean regularize_it;
         if (regularize_it)
             ++legal; /* skip '*' wildcard character */
         (void) fname_encode(legal, '%', fnamebuf, encodedfnamebuf, BUFSZ);
-        Sprintf(SAVEF, "saves/v%s/%s/%s/%s", VULTURE_SAVE_ENUMERATE, VULTURE_SAVE_OS, VULTURE_SAVE_ARCH, encodedfnamebuf);
+        Sprintf(SAVEF, "%s%s", encodedfnamebuf, SAVE_EXTENSION);
     }
 #else  /* not VMS or MICRO or WIN32 */
-    Sprintf(SAVEF, "saves/v%s/%s/%s/%d%s", VULTURE_SAVE_ENUMERATE, VULTURE_SAVE_OS, VULTURE_SAVE_ARCH, (int)getuid(), plname);
+    Sprintf(SAVEF, "save/%d%s", (int) getuid(), plname);
     if (regularize_it)
-        regularize(SAVEF + 7 + sizeof( VULTURE_SAVE_ENUMERATE ) + 1 + sizeof( VULTURE_SAVE_OS ) + 1 + sizeof( VULTURE_SAVE_ARCH ) + 1 );	/* avoid . or / in name */
+        regularize(SAVEF + 5); /* avoid . or / in name */
 #endif /* WIN32 */
 #endif /* MICRO */
 #endif /* VMS   */

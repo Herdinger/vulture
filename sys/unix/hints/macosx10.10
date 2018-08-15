@@ -50,7 +50,7 @@ endif	# WANT_WIN_QT
 GAMEUID  = $(USER)
 GAMEGRP  = games
 # build to run in the source tree - primarily for development.  Build with "make all"
-#WANT_SOURCE_INSTALL=1
+WANT_SOURCE_INSTALL=1
 
 CC=gcc
 
@@ -161,6 +161,7 @@ PREFIX=$(abspath $(NHSROOT))
 # suppress nethack.sh
 #SHELLDIR=
 HACKDIR=$(PREFIX)/playground
+GAMEDIR=$(HACKDIR)
 CHOWN=/usr/bin/true
 CHGRP=/usr/bin/true
 GAMEPERM = 0700
@@ -168,7 +169,7 @@ VARFILEPERM = 0600
 VARDIRPERM = 0700
 # We can use "make all" to build the whole thing - but it misses some things:
 MOREALL=$(MAKE) install
-CFLAGS+=-DSYSCF -DSYSCF_FILE=\"$(HACKDIR)/sysconf\" -DSECURE
+CFLAGS+=-DSECURE
 else	# !WANT_SOURCE_INSTALL
 PREFIX:=$(wildcard ~)
 SHELLDIR=$(PREFIX)/bin

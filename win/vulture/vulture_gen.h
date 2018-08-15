@@ -29,15 +29,7 @@
 * Subdirectories used by Vulture's.
 * These should be under the main directory.
 */
-#ifdef VULTURE_NETHACK_3_4_3
-# define V_BASE_DIRECTORY     ""
-#else
-# ifdef VULTURE_SLASHEM_0_0_7E7F2
-#  define V_BASE_DIRECTORY     "../../"
-# else
-#  define V_BASE_DIRECTORY     "../../../"
-# endif
-#endif
+#define V_BASE_DIRECTORY     ""
 #define V_CONFIG_DIRECTORY   V_BASE_DIRECTORY "config"
 #define V_GRAPHICS_DIRECTORY V_BASE_DIRECTORY "graphics"
 #define V_SOUND_DIRECTORY    V_BASE_DIRECTORY "sound"

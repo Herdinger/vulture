@@ -325,6 +325,7 @@ void vulture_show_darkarts_intro(void)
 
 void vulture_player_selection(void)
 {
+	vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "begin vulture_player_selection()\n");
 	SDL_Surface *logo;
   std::string filename;
 
@@ -346,11 +347,13 @@ void vulture_player_selection(void)
 
 	if (flags.legacy)
 		vulture_show_intro(filename);
+	vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "end vulture_player_selection()\n");
 }
 
 
 void vulture_askname(void)
 {
+	vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "begin vulture_askname()\n");
 	int done;
 	char inputbuffer[256];
 
@@ -365,6 +368,7 @@ void vulture_askname(void)
 	/* do not fade out if user didn't enter anything, we will come back here */
 	if (plname[0])
 		vulture_fade_out(0.2);
+	vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "end vulture_askname()\n");
 }
 
 

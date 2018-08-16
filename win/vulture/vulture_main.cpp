@@ -146,14 +146,17 @@ static int vulture_stop_travelling = 0;
 
 void win_vulture_init(void)
 {
+  vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "begin win_vulture_init()\n");
 #if defined(_WIN32)
 	/*nt_kbhit = vulture_kbhit;*/ /* this should be unnecessary and we haven't implemented a "vulture_kbhit" anywhere */
 #endif
+  vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "end win_vulture_init()\n");
 }
 
 
 void vulture_init_nhwindows(int *argcp, char **argv)
 {
+    vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "begin vulture_init_nhwindows()\n");
 	unsigned int mask;
 
 	/* try to chdir to our datadir */
@@ -217,12 +220,14 @@ void vulture_init_nhwindows(int *argcp, char **argv)
 
 	/* Success! */
 	iflags.window_inited = TRUE;
+    vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "end vulture_init_nhwindows()\n");
 }
 
 
 
 void vulture_exit_nhwindows(const char * str)
 {
+    vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "begin vulture_exit_nhwindows()\n");
 	/* destroy any surviving windows */
 	delete ROOTWIN;
 	delete map_data;
@@ -236,12 +241,14 @@ void vulture_exit_nhwindows(const char * str)
 	vulture_destroy_graphics();
 	
 	vulture_write_userconfig();
+    vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "end vulture_exit_nhwindows()\n");
 }
 
 
 
 winid vulture_create_nhwindow(int type)
 {
+  vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "begin create_nhwindow(%d)\n", type);
   if ( map_data == NULL )
   {
       map_data = new mapdata();
@@ -278,14 +285,18 @@ winid vulture_create_nhwindow(int type)
 			return WIN_ERR;
 	}
 	return win->id;
+    vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "end create_nhwindow(%d)\n", type);
 }
 
 
 
 void vulture_clear_nhwindow(int winid)
 {
-	if (!vulture_get_nhwindow(winid))
+    vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "begin vulture_clear_nhwindow(%d)\n", winid);
+	if (!vulture_get_nhwindow(winid)) {
+        vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "end !vulture_get_nhwindow(winid) vulture_clear_nhwindow(%d)\n", winid);
 		return;
+    }
 
 	/* this doesn't seem to be used for anything other than the map ... */
 	if (winid == WIN_MAP)
@@ -293,12 +304,14 @@ void vulture_clear_nhwindow(int winid)
 
 	/* nethack also wants to clear WIN_MESSAGE frequently, but we don't do that
 	* because we have our own way of handling the message window... */
+    vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "end vulture_clear_nhwindow(%d)\n", winid);
 }
 
 
 /* helper called by vulture_display_nhwindow */
 static void vulture_display_nhmap(window *win, vulture_event *result, BOOLEAN_P blocking)
 {
+    vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "begin vulture_display_nhmap(%d)\n", win);
 	if (u.uz.dlevel != 0) {
 		/* u.uz.dlevel == 0 when the game hasn't been fully initialized yet
 		* you can't actually go there, the astral levels have negative numbers */
@@ -340,16 +353,20 @@ static void vulture_display_nhmap(window *win, vulture_event *result, BOOLEAN_P 
 		u.tx = u.ux;
 		u.ty = u.uy;
 	}
+    vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "end vulture_display_nhmap(%d)\n", win);
 }
 
 void vulture_display_nhwindow(int winid, BOOLEAN_P blocking)
 {
+    vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "begin vulture_display_nhwindow(%d, %d)\n", winid, blocking);
 	nhwindow *win = vulture_get_nhwindow(winid);
 	menu_item *menu_list;    /* Dummy pointer for displaying NHW_MENU windows */
 	vulture_event result = {-1, -1, 0, 0};
 
-	if (!win)
+	if (!win) {
+        vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "end !vulture_get_nhwin(winid) vulture_display_nhwindow(%d, %d)\n", winid, blocking);
 		return;
+    }
 
 	switch(win->type) {
 		case NHW_TEXT:
@@ -367,6 +384,7 @@ void vulture_display_nhwindow(int winid, BOOLEAN_P blocking)
 				win->impl = NULL;
 
 				vulture_fade_out(0.5);
+                vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "end NHW_TEXT, ending_type > 0vulture_display_nhwindow(%d, %d)\n", winid, blocking);
 				return;
 			}
 			/* else fall through */
@@ -398,15 +416,18 @@ void vulture_display_nhwindow(int winid, BOOLEAN_P blocking)
 		default:
 			win->impl->need_redraw = 1;
 	}
+    vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "end vulture_display_nhwindow(%d, %d)\n", winid, blocking);
 }
 
 
 void vulture_destroy_nhwindow(int winid)
 {
+    vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "begin destroy_nhwindow(%d)\n", winid);
 	nhwindow *win = vulture_get_nhwindow(winid);
 
 	if (winid == WIN_MAP) {
 		vulture_fade_out(0.2);
+        vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "end WIN_MAP destroy_nhwindow(%d)\n", winid);
 		return;
 	}
 
@@ -414,21 +435,28 @@ void vulture_destroy_nhwindow(int winid)
 		win->impl->visible = 0;
 
 	delete win;
+    vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "end destroy_nhwindow(%d)\n", winid);
 }
 
 
 void vulture_start_menu(int winid)
 {
+    vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "begin vulture_start_menu(%d)\n", winid);
 	nhwindow *win = vulture_get_nhwindow(winid);
 
 	/* sanity checks */
-	if(!win)
+	if(!win) {
+        vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "end !get_nh_window(winid) vulture_start_menu(%d)\n", winid);
 		return;
+    }
 
-	if (win->type != NHW_MENU)
+	if (win->type != NHW_MENU) {
+        vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "end !NHW_MENU vulture_start_menu(%d)\n", winid);
 		return;
+    }
 	
 	win->reset();
+    vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "end vulture_start_menu(%d)\n", winid);
 }
 
 
@@ -437,33 +465,42 @@ void vulture_add_menu(int winid, int glyph, const ANY_P * identifier,
 					CHAR_P accelerator, CHAR_P groupacc, int attr,
 					const char *str, BOOLEAN_P preselected)
 {
+    vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "begin vulture_add_menu(%d,%s)\n", winid, str);
 	nhwindow *win = vulture_get_nhwindow(winid);
-	if (!win)
+	if (!win) {
+        vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "end !get_nhwindow(winid) vulture_add_menu(%d,%s)\n", winid, str);
 		return;
+    }
 	
 	if (glyph_is_object(glyph))
 		win->has_objects = true;
 	
 	win->add_menuitem(str, !!preselected, identifier->a_void, accelerator, groupacc, glyph);
+    vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "end vulture_add_menu(%d,%s)\n", winid, str);
 }
 
 
 /* finalize a menu window and add the title and accelerators */
 void vulture_end_menu(int winid, const char *prompt)
 {
+    vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "begin vulture_end_menu(%d,%s)\n", winid, prompt);
 	nhwindow *win = vulture_get_nhwindow(winid);
-	if(!win)
+	if(!win) {
+        vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "end !get_nhwindow(winid) vulture_end_menu(%d,%s)\n", winid, prompt);
 		return;
+    }
 
 	/* we (ab)use the prompt as the window title */
 	if (prompt)
 		win->caption = prompt;
+    vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "end vulture_end_menu(%d,%s)\n", winid, prompt);
 }
 
 
 
 int vulture_select_menu(int winid, int how, menu_item **menu_list)
 {
+    vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "begin vulture_select_menu(%d,%d)\n", winid, how);
 	nhwindow *nhwin;
 	menuwin *win;
 	int response = V_MENU_UNKNOWN;
@@ -474,8 +511,10 @@ int vulture_select_menu(int winid, int how, menu_item **menu_list)
                       (winid != WIN_INVEN && !vulture_opts.use_standard_object_menus));
 
 	nhwin = vulture_get_nhwindow(winid);
-	if(!nhwin)
+	if(!nhwin) {
+        vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "end !nhwin vulture_select_menu(%d,%d)\n", winid, how);
 		return -1;
+    }
 
 
 	/* assign accelerators to menuitems, if necessary */
@@ -491,6 +530,7 @@ int vulture_select_menu(int winid, int how, menu_item **menu_list)
 				*menu_list = (menu_item *)malloc(sizeof(menu_item));
 				(*menu_list)[0].item.a_void = (void*)iter->identifier;
 				(*menu_list)[0].count = -1;
+                vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "end autoresponse vulture_select_menu(%d,%d)\n", winid, how);
 				return -1;
 			}
 		}
@@ -519,6 +559,7 @@ int vulture_select_menu(int winid, int how, menu_item **menu_list)
 	/* nothing selected, because the window was canceled or no selection was requested */
 	if (response == V_MENU_CANCEL || how == PICK_NONE) {
 		delete win;
+        vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "end v_menu_cancle, pick_none vulture_select_menu(%d,%d)\n", winid, how);
 		return -1;
 	}
 
@@ -533,6 +574,7 @@ int vulture_select_menu(int winid, int how, menu_item **menu_list)
 	}
 
 	delete win;
+    vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "end selected vulture_select_menu(%d,%d)\n", winid, how);
 	return n_selected;
 }
 
@@ -548,44 +590,54 @@ void vulture_print_glyph(winid window, XCHAR_P x, XCHAR_P y, int glyph, int bkgl
 void vulture_print_glyph(winid window, XCHAR_P x, XCHAR_P y, int glyph)
 #endif
 {
+    //vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "begin vulture_print_glphy(%d, %d, %d, %d)\n", window, x, y, glyph);
 	map_data->set_glyph(x, y, glyph);
+    //vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "end vulture_print_glphy(%d, %d, %d, %d)\n", window, x, y, glyph);
 }
 
 
 void vulture_raw_print(const char *str)
 {
+    vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "begin vulture_raw_print(%s)\n", str);
 	if (str == NULL || *str == '\0')
 		return;
 	vulture_write_log(V_LOG_NETHACK, NULL, 0, "%s\n", str);
 
 	/* also print to stdout, this allows nethack topten to be displayed */
 	printf("%s\n", str);
+    vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "end vulture_raw_print(%s)\n", str);
 }
 
 
 
 void vulture_raw_print_bold(const char *str)
 {
+    vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "begin vulture_raw_print_bold(%s)\n", str);
 	if (str == NULL || *str == '\0')
 		return;
 	vulture_write_log(V_LOG_NETHACK, NULL, 0, "%s\n", str);
 
 	/* also print to stdout, this allows nethack topten to be displayed */
 	printf("%s\n", str);	
+    vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "end vulture_raw_print_bold(%s)\n", str);
 }
 
 
 
 void vulture_putstr(int winid, int attr, const char *str)
 {
+    vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "begin vulture_putstr(%d, %d, %s)\n", winid, attr, str);
 	nhwindow *win;
 
-	if (!str)
+	if (!str) {
+        vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "end empty vulture_putstr(%d, %d, %s)\n", winid, attr, str);
 		return;
+    }
 
 	/* Display error messages immediately */
 	if (winid == WIN_ERR) {
 		vulture_messagebox(str);
+        vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "end error vulture_putstr(%d, %d, %s)\n", winid, attr, str);
 		return;
 	}
 
@@ -601,16 +653,27 @@ void vulture_putstr(int winid, int attr, const char *str)
 			* associated with NetHack's lookat command. */
 			if (vulture_suppress_helpmsg) {
 				/* Skip help line [Please move the cursor to an unknown object.] */
-				if (strncmp(str, "Please move", 11) == 0) return;
+				if (strncmp(str, "Please move", 11) == 0) {
+                    vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "end NHW_MESSAGE supressed vulture_putstr(%d, %d, %s)\n", winid, attr, str);
+                    return;
+                }
 				/* Skip help line [(For instructions type a ?)] */
-				if (strncmp(str, "(For instru", 11) == 0) return;
+				if (strncmp(str, "(For instru", 11) == 0) {
+                    vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "end NHW_MESSAGE supressed vulture_putstr(%d, %d, %s)\n", winid, attr, str);
+                    return;
+                }
 				/* Skip help line [Pick an object.] */
-				if (strncmp(str, "Pick an obj", 11) == 0) return;
+				if (strncmp(str, "Pick an obj", 11) == 0) {
+                    vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "end NHW_MESSAGE supressed vulture_putstr(%d, %d, %s)\n", winid, attr, str);
+                    return;
+                }
 			}
 
 			/* Skip line [Done.] */
-			if (strncmp(str, "Done.", 5) == 0)
+			if (strncmp(str, "Done.", 5) == 0) {
+                vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "end NHW_MESSAGE done vulture_putstr(%d, %d, %s)\n", winid, attr, str);
 				return;
+            }
 
 			msgwin->add_message(std::string(str));
 
@@ -622,17 +685,20 @@ void vulture_putstr(int winid, int attr, const char *str)
 
 			/* Redisplay message window */
 			vulture_display_nhwindow(winid, FALSE);
+            vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "end NHW_MESSAGE vulture_putstr(%d, %d, %s)\n", winid, attr, str);
 			break;
 
 		case NHW_TEXT:
 		case NHW_MENU:
 			/* Add the new text line as a menu item */
 			win->add_menuitem(str, false, NULL, '\0', '\0', 0);
+            vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "end NHW_TEXT|NHW_MENU vulture_putstr(%d, %d, %s)\n", winid, attr, str);
 			break;
 
 		case NHW_STATUS:
 			stwin->parse_statusline(str);
 			stwin->need_redraw = 1;
+            vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "end NHW_STATUS vulture_putstr(%d, %d, %s)\n", winid, attr, str);
 			break;
 	}
 }
@@ -645,16 +711,20 @@ void vulture_putstr(int winid, int attr, const char *str)
 
 int vulture_nhgetch(void)
 {
+    vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "begin vulture_nhgetch()\n");
 	vulture_event * queued_event;
 	SDL_Event event;
 
 	/* check eventstack */
 	queued_event = vulture_eventstack_get();
-	if (queued_event)
+	if (queued_event) {
+        vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "end queued_event vulture_nhgetch()\n");
 		return queued_event->num;
+    }
 
 	vulture_wait_key(&event);
 
+    vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "end vulture_nhgetch()\n");
 	return vulture_translate_key(vulture_make_nh_key(event.key.keysym.sym, event.key.keysym.mod, event.key.keysym.unicode));
 }
 
@@ -662,6 +732,7 @@ int vulture_nhgetch(void)
 
 int vulture_nh_poskey(int *x, int *y, int *mod)
 {
+    vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "begin vulture_nh_poskey()\n");
 	vulture_event result = {-1, -1, 0, 0};
 
 	/* Play ambient music or sound effects */
@@ -672,6 +743,7 @@ int vulture_nh_poskey(int *x, int *y, int *mod)
 	*x = result.x;
 	*y = result.y;
 
+    vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "end vulture_nh_poskey()\n");
 	return result.num;
 }
 
@@ -679,6 +751,7 @@ int vulture_nh_poskey(int *x, int *y, int *mod)
 
 char vulture_yn_function(const char *ques, const char *choices, CHAR_P defchoice)
 {
+    vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "begin vulture_yn_function(%s, %s)\n", ques, choices);
 	window *win;
 	char response;
 
@@ -700,6 +773,7 @@ char vulture_yn_function(const char *ques, const char *choices, CHAR_P defchoice
 	/* clean up */
 	delete win;
 
+    vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "end vulture_yn_function(%s, %s)\n", ques, choices);
 	return response;
 }
 
@@ -707,8 +781,10 @@ char vulture_yn_function(const char *ques, const char *choices, CHAR_P defchoice
 
 void vulture_getlin(const char *ques, char *input)
 {
+    vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "begin vulture_getlin(%s)\n", ques);
 	if (!vulture_get_input(-1, -1, ques, input))
 		strcpy(input, "\033");
+    vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "end vulture_getlin(%s)\n", ques);
 }
 
 
@@ -723,35 +799,45 @@ void vulture_outrip(int winid, int how, time_t when)
 void vulture_outrip(int winid, int how)
 #endif
 {
+    vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "begin vulture_outrip(%d, %d)\n", winid, how);
 	nhwindow *win = vulture_get_nhwindow(winid);
 
-	if (!win)
+	if (!win) {
+        vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "end !nhwin vulture_outrip(%d, %d)\n", winid, how);
 		return;
+    }
 
 	win->ending_type = how;
+    vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "end vulture_outrip(%d, %d)\n", winid, how);
 }
 
 
 /* handle options updates here */
 void vulture_preference_update(const char *pref)
 {
+    vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "begin vulture_preference_update(%s)\n", pref);
 	if (strcmpi(pref, "hilite_pet") == 0)
 		vulture_display_nhwindow(WIN_MAP, FALSE);
 
+    vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "end vulture_preference_update(%s)\n", pref);
 	return;
 }
 
 char *
 vulture_getmsghistory(BOOLEAN_P init)
 {
+    vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "begin vulture_getmsghistory(%d)\n", init);
   //TODO
   char *result = 0;
+  vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "end vulture_getmsghistory(%d)\n", init);
   return result;
 }
 
 void
 vulture_putmsghistory(const char *msg, BOOLEAN_P restoring_msghist)
 {
+    vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "begin vulture_putmsghistory(%s, %d)\n", msg, restoring_msghist);
+    vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "end vulture_putmsghistory(%s, %d)\n", msg, restoring_msghist);
   //TODO
 }
 
@@ -769,6 +855,8 @@ extern int NDECL(extcmd_via_menu);
 /* display a list of extended commands for the user to pick from */
 int vulture_get_ext_cmd(void)
 {
+    vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "begin vulture_get_ext_cmd()\n");
+    vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "end vulture_get_ext_cmd()\n");
   return extcmd_via_menu();
   // TODO if ( iflags.extmenu ) return extcmd_via_menu();
   // ... in the rest of this function should be code to create an input box
@@ -779,6 +867,7 @@ int vulture_get_ext_cmd(void)
 /* display a file in a menu window */
 void vulture_display_file(const char *fname, BOOLEAN_P complain)
 {
+    vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "begin vulture_display_file(%s, %d)\n", fname, complain);
 	dlb * f;                /* Data librarian */
 	char tempbuffer[1024];
 	int window;
@@ -790,6 +879,7 @@ void vulture_display_file(const char *fname, BOOLEAN_P complain)
 			sprintf(tempbuffer, "Can't open file [%s].\n", fname);
 			vulture_messagebox(tempbuffer);
 		}
+        vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "end !dlb_fopen vulture_display_file(%s, %d)\n", fname, complain);
 		return;
 	}
 
@@ -806,12 +896,14 @@ void vulture_display_file(const char *fname, BOOLEAN_P complain)
 
 	/* Clean up */
 	vulture_destroy_nhwindow(window);
+    vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "end vulture_display_file(%s, %d)\n", fname, complain);
 }
 
 
 
 int vulture_doprev_message(void)
 {
+    vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "begin vulture_doprev_message()\n");
 	nhwindow *messages;
 
 	int pos = msgwin->getshown();
@@ -822,6 +914,7 @@ int vulture_doprev_message(void)
 	messages->impl->draw_windows();
 	vulture_refresh_window_region();
 
+    vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "end vulture_doprev_message()\n");
 	return 0;
 }
 
@@ -830,6 +923,7 @@ int vulture_doprev_message(void)
 * would cause the mouse to freeze, because the eventloop would also pause */
 void vulture_delay_output(void)
 {
+    vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "begin vulture_delay_output()\n");
 	int delay = 50, origdelay;
 	int elapsed;
 	int starttick, endtick;
@@ -877,11 +971,13 @@ void vulture_delay_output(void)
 	* the correct delay on average ...*/
 	if (origdelay - elapsed > 5)
 		SDL_Delay(origdelay - elapsed);
+    vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "end vulture_delay_output()\n");
 }
 
 
 char vulture_message_menu(CHAR_P let, int how, const char *mesg)
 {
+    vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "begin vulture_message_menu(%d, %d, %s)\n", let, how, mesg);
 	pline("%s", mesg);
 	return '\0';
 }
@@ -893,6 +989,7 @@ char vulture_message_menu(CHAR_P let, int how, const char *mesg)
 * the mose to be moved via keyboard input */
 void vulture_curs(winid window, int x, int y)
 {
+    vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "begin vulture_curs(%d, %d, %d)\n", window, x, y);
 	/* allow selecting a position via keyboard for look and teleport (both set vulture_whatis_active) */
 	if (window == WIN_MAP && vulture_whatis_active) {
 		point mappos, mouse;
@@ -911,6 +1008,7 @@ void vulture_curs(winid window, int x, int y)
 
 		vulture_set_mouse_pos( mouse.x, mouse.y );
 	}
+    vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "end vulture_curs(%d, %d, %d)\n", window, x, y);
 }
 
 
@@ -919,6 +1017,7 @@ void vulture_curs(winid window, int x, int y)
 * because a loop in the travel algorithm was detected */
 void vulture_get_nh_event(void)
 {
+    vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "begin vulture_get_nh_event()\n");
 #ifdef TRAVEL_HACK
 	static point lastpos[2] = {{-1,-1}, {-1,-1}};
 
@@ -944,6 +1043,7 @@ void vulture_get_nh_event(void)
 
 	vulture_stop_travelling = 0;
 #endif
+    vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "end vulture_get_nh_event()\n");
 }
 
 

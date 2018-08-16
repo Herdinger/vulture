@@ -10,7 +10,11 @@
 
 #include <SDL.h>
 
-#include "png.h"
+#define STB_IMAGE_IMPLEMENTATION
+#include "vendor/stb/stb_image.h"
+
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "vendor/stb/stb_image_write.h"
 
 #include "vulture_gfl.h"
 #include "vulture_gen.h"
@@ -19,20 +23,6 @@
 
 #include "winclass/messagewin.h"
 
-#define PNG_BYTES_TO_CHECK 4
-
-struct readbuff {char *buff; unsigned int len;};
-
-static void vulture_png_read_callback(png_structp png_ptr, png_bytep area, png_size_t size)
-{
-    unsigned int readlen;
-    struct readbuff *readfrom = (struct readbuff *)png_get_io_ptr(png_ptr);
-    readlen = (readfrom->len > size) ? size : readfrom->len;
-    memcpy(area, readfrom->buff, readlen);
-    size = readlen;
-    readfrom->len -= readlen;
-    readfrom->buff += readlen;
-}
 
 /*--------------------------------------------------------------------------
 truecolor png image loader (backend)
@@ -42,14 +32,9 @@ buflen       : [in]  length of the input buffer
 --------------------------------------------------------------------------*/
 SDL_Surface *vulture_load_surface(char *srcbuf, unsigned int buflen)
 {
-	png_structp png_ptr;
-	png_infop info_ptr;
 	Uint32 Rmask, Gmask, Bmask, Amask;
-	png_uint_32 width, height;
-	int bit_depth, color_type, row;
-	png_bytep * row_pointers = NULL;
+	int width, height;
 	SDL_Surface *img, *convert;
-	struct readbuff readfrom;
 
 	/* vulture_load_surface converts everything to screen format for faster blitting
 	* so we can't continue if we don't have a screen yet */
@@ -60,53 +45,7 @@ SDL_Surface *vulture_load_surface(char *srcbuf, unsigned int buflen)
 	if (!srcbuf)
 		return NULL;
 
-	if (buflen < PNG_BYTES_TO_CHECK)
-         return NULL;
-
 	img = NULL;
-
-	/* memory region must contain a png file */
-	if (png_sig_cmp((unsigned char *)srcbuf, 0, PNG_BYTES_TO_CHECK))
-		return NULL;
-
-	/* Create the PNG loading context structure */
-	png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-	if (!png_ptr)
-		return NULL;
-
-	/* Allocate/initialize the memory for image information.  REQUIRED. */
-	info_ptr = png_create_info_struct(png_ptr);
-	if (!info_ptr)
-		goto out;
-
-	/* Set up error handling */
-	if (setjmp(png_jmpbuf(png_ptr)))
-		goto out;
-
-	readfrom.buff = (char *)srcbuf;
-	readfrom.len = buflen;
-
-	png_set_read_fn(png_ptr, &readfrom, vulture_png_read_callback);
-
-	/* Read PNG header info */
-	png_read_info(png_ptr, info_ptr);
-	png_get_IHDR(png_ptr, info_ptr, &width, &height, &bit_depth,
-				&color_type, NULL, NULL, NULL);
-
-	/* reduce 16 bit per channel to 8 bit per channel */
-	png_set_strip_16(png_ptr);
-
-	/* expand 1,2,4 bit grayscale to 8 bit grayscale; expand paletted images to rgb,
-	* expand tRNS to true alpha channel */
-	png_set_expand(png_ptr);
-
-	/* expand grayscale to full rgb */
-	png_set_gray_to_rgb(png_ptr);
-
-	/* add an opaque alpha channel to anything that doesn't have one yet */
-	if (png_get_color_type(png_ptr, info_ptr) == PNG_COLOR_TYPE_RGB ||
-            png_get_color_type(png_ptr, info_ptr) == PNG_COLOR_TYPE_GRAY)
-            png_set_add_alpha(png_ptr, 0xff, PNG_FILLER_AFTER);
 
 	/* get the component mask for the surface */
 	if ( SDL_BYTEORDER == SDL_LIL_ENDIAN )
@@ -122,33 +61,15 @@ SDL_Surface *vulture_load_surface(char *srcbuf, unsigned int buflen)
 		Amask = 0x000000FF;
 	}
 
-	img = SDL_AllocSurface(SDL_SWSURFACE | SDL_SRCALPHA, width, height,
-						32, Rmask, Gmask, Bmask, Amask);
-	if (!img)
-		goto out;
+    unsigned char* result = stbi_load_from_memory(reinterpret_cast<unsigned char*>(srcbuf), buflen, &width, &height, nullptr, 4); 
 
-	/* Create the array of pointers to image data */
-	row_pointers = new png_bytep[height];
-	if (!row_pointers) {
-		SDL_FreeSurface(img);
-		img = NULL;
-		goto out;
-	}
+    if(!result)
+        return NULL;
 
-	for (row = 0; row < (int)height; row++)
-		row_pointers[row] = (png_bytep)(Uint8 *)img->pixels + row * img->pitch;
-
-	/* read the image */
-	png_read_image(png_ptr, row_pointers);
-
-out:
-	png_destroy_read_struct(&png_ptr, info_ptr ? &info_ptr : NULL, NULL);
-
-	if (row_pointers)
-		delete row_pointers;
+    img = SDL_CreateRGBSurfaceFrom(result, width, height, 32, width*4, Rmask, Gmask, Bmask, Amask);
 
 	if (!img)
-		return NULL;
+        return NULL;
 
 	convert = SDL_DisplayFormatAlpha(img);
 
@@ -220,18 +141,15 @@ Save the contents of the surface to a png file
 --------------------------------------------*/
 void vulture_save_png(SDL_Surface *surface, std::string filename, int with_alpha)
 {
-	png_structp png_ptr;
-	png_infop info_ptr;
 	FILE * fp;
 	int i, j;
 	unsigned int *in_pixels = (unsigned int*)surface->pixels;
-	unsigned char *output = new unsigned char[surface->w * surface->h * (with_alpha ? 4 : 3)];
-	png_bytep *image = new png_bytep[surface->h];
+	unsigned char *buf = new unsigned char[surface->w * surface->h * (with_alpha ? 4 : 3)];
+    unsigned char *output = buf;
 
 	/* strip out alpha bytes if neccessary and reorder the image bytes to RGB */
 	for (j = 0; j < surface->h; j++)
 	{
-		image[j] = output;
 		for (i = 0; i < surface->w; i++)
 		{
 			*output++ = (((*in_pixels) & surface->format->Rmask) >> surface->format->Rshift);       /* red   */
@@ -242,30 +160,9 @@ void vulture_save_png(SDL_Surface *surface, std::string filename, int with_alpha
 			in_pixels++;
 		}
 	}
+    stbi_write_png(filename.c_str(), surface->w, surface->h, (with_alpha ? 4 : 3), buf, 0);
 
-	/* open the file */
-	if (!(fp = fopen(filename.c_str(), "wb")))
-		goto cleanup;
-
-	/* create png image data structures */
-	png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-	info_ptr = png_create_info_struct(png_ptr);
-	if (setjmp(png_jmpbuf(png_ptr)))
-		goto cleanup;
-
-	/* write the image */
-	png_init_io(png_ptr, fp);
-	png_set_IHDR(png_ptr, info_ptr, surface->w, surface->h, 8, with_alpha ? PNG_COLOR_TYPE_RGBA : PNG_COLOR_TYPE_RGB,
-				PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
-	png_set_rows(png_ptr, info_ptr, image);
-	png_write_png(png_ptr, info_ptr, 0, NULL);
-	png_destroy_write_struct(&png_ptr, &info_ptr);
-
-cleanup: /* <- */
-	fclose(fp);
-	/* output has been modified, but the value is still present in image[0] */
-	delete image[0];
-	delete image;
+	delete[] buf;
 }
 
 
@@ -289,7 +186,7 @@ void vulture_save_screenshot(void)
 			vulture_save_png(vulture_screen, filename, 0);
 			msg = std::string("Screenshot saved as ") + filename + ".";
 
-			if (vulture_windows_inited)
+			if (!vulture_windows_inited)
 				vulture_messagebox(msg);
 			else
 				msgwin->add_message(msg);

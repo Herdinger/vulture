@@ -273,7 +273,6 @@ winid vulture_create_nhwindow(int type)
       vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "Create NHW_MAP\n");
 			win->impl = ROOTWIN;
 			static_cast<levelwin*>(ROOTWIN)->init();
-      vulture_windows_inited = 1;
 
 			break;
 
@@ -313,6 +312,7 @@ static void vulture_display_nhmap(window *win, vulture_event *result, BOOLEAN_P 
 {
     vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "begin vulture_display_nhmap(%d)\n", win);
 	if (u.uz.dlevel != 0) {
+        vulture_windows_inited = true;
 		/* u.uz.dlevel == 0 when the game hasn't been fully initialized yet
 		* you can't actually go there, the astral levels have negative numbers */
 

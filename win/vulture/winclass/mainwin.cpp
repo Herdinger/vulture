@@ -166,9 +166,16 @@ void mainwin::layout()
 	max_y += buttonheight;
 	w = max_x + border_left + border_right;
 	h = max_y + border_top + border_bottom;
-	
-	x = (parent->w - w) / 2;
-	y = (parent->h - h) / 2;
-	abs_x = parent->abs_x + x;
-	abs_y = parent->abs_y + y;
+    if (parent == NULL)
+    {
+        x = (vulture_screen->w - w)/2;
+        y = (vulture_screen->h - h)/2;
+        abs_x = x;
+        abs_y = y;
+    } else {
+        x = (parent->w - w) / 2;
+        y = (parent->h - h) / 2;
+        abs_x = parent->abs_x + x;
+        abs_y = parent->abs_y + y;
+    }
 }

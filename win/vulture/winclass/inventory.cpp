@@ -51,7 +51,7 @@ bool inventory::draw()
 	stored_caption = caption;
 	caption.clear();
 	
-	mainwin::draw();
+ if(menuwin::draw()) {
 	
 	caption = stored_caption;
 
@@ -102,6 +102,8 @@ bool inventory::draw()
 	}
 
 	return 1;
+}
+return 0;
 }
 
 

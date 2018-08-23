@@ -47,7 +47,6 @@ bool optionwin::draw()
 							abs_x + vulture_winelem.radiobutton_off->w + 4,
 							abs_y + 2, V_COLOR_TEXT, V_COLOR_BACKGROUND);
 
-	vulture_invalidate_region(abs_x, abs_y, w, h);
 
 	return false;
 }

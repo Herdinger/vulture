@@ -127,9 +127,7 @@ bool map::draw()
 			}
 		}
 
-	vulture_invalidate_region(abs_x, abs_y, w, h);
-
-	return false;
+	return true;
 }
 
 

@@ -345,7 +345,6 @@ int vulture_handle_global_event(SDL_Event * event)
 			{
 				vulture_unload_gametiles();
 				vulture_load_gametiles();
-				levwin->force_redraw();
 				ROOTWIN->draw_windows();
 				pline("tileconfig reloaded!");
 			}
@@ -359,7 +358,6 @@ int vulture_handle_global_event(SDL_Event * event)
 				vulture_map_highlight_objects = 1;
 
 				/* set the max clipping rect */
-				levwin->force_redraw();
 
 				/* redraw with the object highlight */
 				ROOTWIN->draw_windows();
@@ -381,9 +379,6 @@ int vulture_handle_global_event(SDL_Event * event)
 			{
 				/* disable highlighting */
 				vulture_map_highlight_objects = 0;
-
-				/* set the max clipping rect */
-				levwin->force_redraw();
 
 				/* redraw without the object highlight */
 				ROOTWIN->draw_windows();

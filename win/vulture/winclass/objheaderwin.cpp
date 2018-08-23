@@ -13,7 +13,6 @@ objheaderwin::objheaderwin(window *parent, std::string cap) : window(parent)
 	v_type = V_WINTYPE_OBJITEMHEADER;
 	w = V_LISTITEM_WIDTH;
 	h = V_LISTITEM_HEIGHT;
-	autobg = true;
 	caption = cap;
 }
 
@@ -38,8 +37,6 @@ bool objheaderwin::draw()
 
 	vulture_put_text_shadow(V_FONT_MENU, caption, vulture_screen, text_start_x,
 							text_start_y, CLR32_WHITE, CLR32_BLACK);
-
-	vulture_invalidate_region(abs_x, abs_y, w, h);
 
 	/* lift drawing region restriction */
 	vulture_set_draw_region(0, 0, vulture_screen->w - 1, vulture_screen->h - 1);

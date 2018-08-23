@@ -49,8 +49,6 @@ levelwin::levelwin(mapdata *data) : window(NULL), map_data(data)
 	y = 0;
 	w = vulture_screen->w;
 	h = vulture_screen->h;
-	need_redraw = 1;
-
 
 	/* upper left scroll hotspot */
 	new hotspot(this, 0,      0,      20,     20,     V_HOTSPOT_SCROLL_UPLEFT,    "scroll diagonally");
@@ -181,16 +179,6 @@ bool levelwin::need_recenter(int map_x, int map_y)
 }
 
 
-void levelwin::force_redraw(void)
-{
-    need_redraw = 1;
-
-    clip_tl_x = 0;
-    clip_tl_y = 0;
-    clip_br_x = w;
-    clip_br_y = h;
-}
-
 
 
 bool levelwin::draw()
@@ -213,9 +201,6 @@ bool levelwin::draw()
   if ( vulture_windows_inited != TRUE )
   {
 		SDL_FillRect(vulture_screen, NULL, CLR32_BLACK);
-		vulture_invalidate_region(clip_tl_x, clip_tl_y,
-								clip_br_x - clip_tl_x,
-								clip_br_y - clip_tl_y);
     return 1;
   }
 
@@ -226,34 +211,11 @@ bool levelwin::draw()
 	}
 
 
-	if (prev_cx != view_x ||
-		prev_cy != view_y ||
-		map_data->map_swallow != V_TILE_NONE)
-	{
-		clip_tl_x = this->abs_x;
-		clip_tl_y = this->abs_y;
-		clip_br_x = this->abs_x + this->w;
-		clip_br_y = this->abs_y + this->h;
-	}
-	else
-	{
-		clip_tl_x = min(clip_tl_x, 0);
-		clip_tl_y = min(clip_tl_y, 0);
-		clip_br_x = max(clip_br_x, this->abs_x + this->w - 1);
-		clip_br_y = max(clip_br_y, this->abs_y + this->h - 1);
-	}
-
-	if (clip_tl_x >= this->w + this->abs_x ||
-	    clip_tl_y >= this->h + this->abs_y)
-		/* nothing changed onscreen */
-		return 1;
-
 	prev_cx = view_x;
 	prev_cy = view_y;
 
 	/* Only draw on map area */
-	vulture_set_draw_region(clip_tl_x, clip_tl_y,
-							clip_br_x, clip_br_y);
+	vulture_set_draw_region(0, 0, vulture_screen->w-1, vulture_screen->h-1);
 
 	/* If swallowed draw ONLY the engulf tile and the player! */
 	if (u.uswallow && map_data->map_swallow != V_TILE_NONE) {
@@ -269,9 +231,6 @@ bool levelwin::draw()
 		/* player */
 		vulture_put_tile(x, y, map_data->get_glyph(MAP_MON, u.ux, u.uy));
 
-		vulture_invalidate_region(clip_tl_x, clip_tl_y,
-								clip_br_x - clip_tl_x,
-								clip_br_y - clip_tl_y);
 		return 1;
 	}
 	else
@@ -466,15 +425,6 @@ bool levelwin::draw()
 	}
 	/* Restore drawing region */
 	vulture_set_draw_region(0, 0, vulture_screen->w-1, vulture_screen->h-1);
-
-	vulture_invalidate_region(clip_tl_x, clip_tl_y,
-							clip_br_x - clip_tl_x,
-							clip_br_y - clip_tl_y);
-
-	clip_tl_x = 999999;
-	clip_tl_y = 999999;
-	clip_br_x = 0;
-	clip_br_y = 0;
 
 	vulture_tilecache_age();
 
@@ -835,7 +785,6 @@ void levelwin::toggle_uiwin(int menuid, bool enabled)
 		win = win->sib_next;
 	}
 	
-	force_redraw();
 }
 
 

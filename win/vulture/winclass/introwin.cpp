@@ -65,7 +65,6 @@ bool introwin::draw()
 	} else
 		SDL_FillRect(vulture_screen, NULL, CLR32_BLACK);
 	
-	vulture_invalidate_region(0, 0, w, h);
 	return false;
 }
 

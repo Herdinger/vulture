@@ -21,6 +21,7 @@
 #include "vulture_opt.h"
 
 #include "winclass/introwin.h"
+#include "winclass/imagewin.h"
 #include "vendor/theoraplay/theoraplay.h"
 
 static void vulture_show_intro(std::string introscript_name);
@@ -330,11 +331,7 @@ void vulture_player_selection(void)
   std::string filename;
 
 	SDL_FillRect(vulture_screen, NULL, CLR32_BLACK);
-	logo = vulture_load_graphic(V_FILENAME_CHARACTER_GENERATION);
-	if (logo != NULL) {
-		vulture_put_img((vulture_screen->w - logo->w) / 2, (vulture_screen->h - logo->h) / 2, logo);
-		SDL_FreeSurface(logo);
-	}
+    new imagewin(ROOTWIN, V_FILENAME_CHARACTER_GENERATION, -1, -1);
 
 	vulture_fade_in(0.2);
 
@@ -357,7 +354,7 @@ void vulture_askname(void)
 	int done;
 	char inputbuffer[256];
 
-	done = vulture_get_input(-1, vulture_screen->h - 170,
+	done = vulture_get_input(-1, -1,
 						"What is your name?", inputbuffer);
 	if (!done)
 		/* Player pressed ESC during the name query, so quit the game */
@@ -435,7 +432,7 @@ static void vulture_show_intro(std::string introscript_name)
 	}
 	
 	/* display intro */
-	iw = new introwin(NULL, imagenames, subtitles);
+	iw = new introwin(ROOTWIN, imagenames, subtitles);
 	vulture_event_dispatcher(&dummy, V_RESPOND_INT, iw);
 	delete iw;
 }

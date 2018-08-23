@@ -533,7 +533,6 @@ int vulture_iface_opts(void)
 
 				vulture_opts.wall_style = selected_sub[0].item.a_int-1;
 				levwin->set_wall_style(vulture_opts.wall_style);
-				levwin->force_redraw();
 				vulture_display_nhwindow(WIN_MAP, 0);
 				break;
 
@@ -547,7 +546,6 @@ int vulture_iface_opts(void)
 				/* flush tile arrays to ensure the new transparency gets used */
 				vulture_tilecache_discard();
 				/* force redraw */
-				levwin->force_redraw();
 				vulture_display_nhwindow(WIN_MAP, 0);
 				break;
 

@@ -220,6 +220,8 @@ void vulture_init_nhwindows(int *argcp, char **argv)
 
 	/* Success! */
 	iflags.window_inited = TRUE;
+    ROOTWIN = new window(NULL);
+  vulture_refresh();
     vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "end vulture_init_nhwindows()\n");
 }
 
@@ -261,18 +263,18 @@ winid vulture_create_nhwindow(int type)
 	switch(type) {
 		case NHW_STATUS:
       vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "Create NHW_STATUS\n");
-			win->impl = new statuswin(NULL);
+			win->impl = new statuswin(levwin);
 			break;
 
 		case NHW_MESSAGE:
       vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "Create NHW_MESSAGE\n");
-			win->impl = new messagewin(NULL);
+			win->impl = new messagewin(levwin);
 			break;
 
 		case NHW_MAP:
       vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "Create NHW_MAP\n");
-			win->impl = ROOTWIN;
-			static_cast<levelwin*>(ROOTWIN)->init();
+			win->impl = levwin;
+			static_cast<levelwin*>(levwin)->init();
 
 			break;
 
@@ -313,6 +315,10 @@ static void vulture_display_nhmap(window *win, vulture_event *result, BOOLEAN_P 
     vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "begin vulture_display_nhmap(%d)\n", win);
 	if (u.uz.dlevel != 0) {
         vulture_windows_inited = true;
+        if(ROOTWIN != levwin) {
+        delete ROOTWIN;
+        ROOTWIN = levwin;
+        }
 		/* u.uz.dlevel == 0 when the game hasn't been fully initialized yet
 		* you can't actually go there, the astral levels have negative numbers */
 

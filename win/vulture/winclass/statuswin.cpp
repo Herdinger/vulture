@@ -79,8 +79,6 @@ bool statuswin::draw()
 	vulture_set_draw_region(abs_x, abs_y, abs_x + w - 1, abs_y + h - 1);
 	vulture_put_img(abs_x, abs_y, statusbg);
 	vulture_set_draw_region(0, 0, vulture_screen->w-1, vulture_screen->h-1);
-
-	vulture_invalidate_region(abs_x, abs_y, w, h);
 	
 	return true;
 }

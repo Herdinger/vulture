@@ -127,14 +127,13 @@ eventresult dirdialog::handle_resize_event(window* target, void* result, int res
 
 bool dirdialog::draw()
 {
-	mainwin::draw();
+	if(mainwin::draw()) {
 	
 	vulture_set_draw_region(arr->abs_x, arr->abs_y, 
 	                         arr->abs_x + arr->w - 1, arr->abs_y + arr->h - 1);
 	vulture_put_img(arr->abs_x, arr->abs_y, vulture_winelem.direction_arrows);
 	vulture_set_draw_region(0, 0, vulture_screen->w - 1, vulture_screen->h - 1);
-
-	vulture_invalidate_region(abs_x, abs_y, w, h);
+    }
 
 	return false;
 }

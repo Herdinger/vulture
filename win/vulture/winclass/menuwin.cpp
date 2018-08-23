@@ -22,6 +22,7 @@ extern "C" {
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 
 
+
 menuwin::menuwin(window *p, std::list<menuitem> &menuitems, int how) : 
                  mainwin(p), items(menuitems), select_how(how)
 {
@@ -42,11 +43,7 @@ menuwin::~menuwin()
 
 bool menuwin::draw()
 {
-	/* draw the window + title */
-	mainwin::draw();
-
-	/* no need to invalidate the draw region, the call to draw mainwin did that for us */
-	return true;
+    return mainwin::draw();
 }
 
 

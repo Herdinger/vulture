@@ -6,17 +6,15 @@
 #include "vulture_win.h"
 #include "vulture_sdl.h"
 
-
 window *ROOTWIN = NULL;
-
 window::window(window *p) : parent(p)
 {
-	if (!parent && ROOTWIN)
-		parent = ROOTWIN;
-
 	first_child = last_child = NULL;
 	sib_next = sib_prev = NULL;
-	abs_x = abs_y = x = y = w = h = 0;
+	abs_x = abs_y = x = y = 0;
+    w = vulture_screen->w;
+    h = vulture_screen->h;
+
 	caption = "";
 	accelerator = '\0';
 	group_accelerator = '\0';
@@ -24,7 +22,6 @@ window::window(window *p) : parent(p)
 	autobg = false;
 	menu_id_v = NULL;
 	
-	need_redraw = true;
 	visible = true;
 	
 	if (parent != NULL)
@@ -36,8 +33,7 @@ window::window(window *p) : parent(p)
 		else
 			parent->first_child = this;
 		parent->last_child = this;
-	} else
-		ROOTWIN = this;
+	} 
 	
 	v_type = V_WINTYPE_CUSTOM;
 }
@@ -65,23 +61,10 @@ window::~window()
 
 	/* destroy it's children. note that the child's destroy function will manipulate ->first_child */
 	while (first_child) {
-		if (!visible)
-			first_child->visible = 0;
 		delete first_child; // deleting a child will unlink it; eventually first_child will be NULL
 	}
-
-	/* we may want to restore the background before deleting it */
-	if (visible && background != NULL && autobg && (!parent || parent->visible)) {
-		vulture_put_img(abs_x, abs_y, background);
-		vulture_refresh_region(abs_x, abs_y,abs_x + w, abs_y + h);
-	}
-
-	/* make sure the background gets freed even if it doesn't get restored */
-	if (background)
-		SDL_FreeSurface(background);
-	
-	if (ROOTWIN == this)
-		ROOTWIN = NULL;
+    if(ROOTWIN == this)
+        ROOTWIN = nullptr;
 }
 
 
@@ -90,74 +73,15 @@ void window::set_caption(std::string str)
 	caption = str;
 }
 
+bool window::draw() {
+    SDL_FillRect(vulture_screen, NULL, CLR32_BLACK);
+    return true;
+}
 
 void window::hide()
 {
-	if (background && autobg)
-	{
-		vulture_put_img(abs_x, abs_y, background);
-		vulture_refresh_region(abs_x, abs_y, abs_x + w, abs_y + h);
-		SDL_FreeSurface(background);
-		background = NULL;
-	}
-
 	visible = 0;
 	need_redraw = 0;
-}
-
-
-/* windows which have autobg set store an image of the screen behind them, so
-* that the screen can easily be restored when the window is hidden or destroyed.
-* if a window behind the current window is updated, the current window must
-* refresh its stored background */
-void window::update_background(void)
-{
-	int i;
-	int x1, y1, x2, y2;
-	SDL_Rect src, dst;
-
-	/* no stored background and autobg is off: do nothing */
-	if (!background && !autobg)
-		return;
-
-	/* no background stored yet: copy a surface that is as large as the window */
-	if (!background) {
-		background = vulture_get_img(abs_x, abs_y, (abs_x + w - 1), (abs_y + h - 1));
-		return;
-	}
-
-	/* find the intersection between all invalid regions and the window so that
-	* only actually invalid parts of the background get updated */
-	for (i = 0; i < vulture_invrects_num; i++)
-	{
-		if (abs_x > (vulture_invrects[i].x + vulture_invrects[i].w) ||
-			abs_y > (vulture_invrects[i].y + vulture_invrects[i].h) ||
-			(abs_x + w) < vulture_invrects[i].x ||
-			(abs_y + h) < vulture_invrects[i].y)
-			continue;
-
-		x1 = (abs_x > vulture_invrects[i].x) ? abs_x : vulture_invrects[i].x;
-		y1 = (abs_y > vulture_invrects[i].y) ? abs_y : vulture_invrects[i].y;
-		x2 = (abs_x + w > vulture_invrects[i].x + vulture_invrects[i].w) ?
-				vulture_invrects[i].x + vulture_invrects[i].w : abs_x + w;
-		y2 = (abs_y + h > vulture_invrects[i].y + vulture_invrects[i].h) ?
-				vulture_invrects[i].y + vulture_invrects[i].h : abs_y + h;
-
-		if (x1 < x2 && y1 < y2)
-		{
-			src.x = x1;
-			src.y = y1;
-			src.w = x2 - x1;
-			src.h = y2 - y1;
-
-			dst.x = x1 - abs_x;
-			dst.y = y1 - abs_y;
-			dst.w = src.w;
-			dst.h = src.h;
-
-			SDL_BlitSurface(vulture_screen, &src, background, &dst);
-		}
-	}
 }
 
 
@@ -181,51 +105,19 @@ std::vector<window*> window::find_accel(char accel)
 /* walks the list of windows and draws all of them, depending on their type and status */
 void window::draw_windows()
 {
-	bool descend = true;
-	bool invalid = false;
-	window *current = this;
+    if(!visible)
+        return;
 
-	update_background();
+    if(!draw()) {
+        return;
+    }
 
-	if (need_redraw && !draw()) {
-		/* draw() == 0 means that the window took care of
-		 * redrawing it's children itself */
-		need_redraw = false;
-		return;
-	}
-
-	need_redraw = false;
-
-	do {
-		current = current->walk_winlist(&descend);
-
-		if (!current->visible) {
-			descend = false;
-			continue;
-		}
-
+	for (window* current = first_child; current; current = current->sib_next) {
 		/* recalc absolute position */
-		if (current->parent) {
-			current->abs_x = current->parent->abs_x + current->x;
-			current->abs_y = current->parent->abs_y + current->y;
-		}
-
-		/* if the window intersects an invalid region, some window "underneath" it
-		 * painted over part of it; we need to refresh the saved background and redraw */
-		invalid = current->intersects_invalid();
-
-		if (current->need_redraw || (invalid && descend)) {
-			current->update_background();
-
-			/* setting descend = 0 will prevent the next call to vulture_walk_winlist
-			 * from descending to a child window. The window's draw() function can choose
-			 * to let us redraw it's children from here by returning 1 */
-			descend = current->draw();
-
-			current->need_redraw = 0;
-		}
-	/* vulture_walk_winlist will eventually arive back at the top window */
-	} while (current != this);
+        current->abs_x = current->parent->abs_x + current->x;
+        current->abs_y = current->parent->abs_y + current->y;
+        current->draw_windows();
+	}
 }
 
 
@@ -272,35 +164,6 @@ window *window::get_window_from_point(point mouse)
 			return winptr;
 	}
 	return winptr;
-}
-
-
-/* determine whether a window intersects an invalid region */
-bool window::intersects_invalid()
-{
-	int i;
-	int x1, y1, x2, y2;
-
-	for (i = 0; i < vulture_invrects_num; i++) {
-		/* check intersection with each invalid rect */
-		if (abs_x > (vulture_invrects[i].x + vulture_invrects[i].w) ||
-			abs_y > (vulture_invrects[i].y + vulture_invrects[i].h) ||
-			(abs_x + w) < vulture_invrects[i].x ||
-			(abs_y + h) < vulture_invrects[i].y)
-			continue;
-
-		x1 = (abs_x > vulture_invrects[i].x) ? abs_x : vulture_invrects[i].x;
-		y1 = (abs_y > vulture_invrects[i].y) ? abs_y : vulture_invrects[i].y;
-		x2 = (abs_x + w > vulture_invrects[i].x + vulture_invrects[i].w) ?
-				vulture_invrects[i].x + vulture_invrects[i].w : abs_x + w;
-		y2 = (abs_y + h > vulture_invrects[i].y + vulture_invrects[i].h) ?
-				vulture_invrects[i].y + vulture_invrects[i].h : abs_y + h;
-
-		if (x1 < x2 && y1 < y2)
-			return true;
-	}
-
-	return false;
 }
 
 

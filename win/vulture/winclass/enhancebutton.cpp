@@ -43,8 +43,6 @@ bool enhancebutton::draw()
 	vulture_put_img(abs_x, abs_y, image);
 	vulture_set_draw_region(0, 0, vulture_screen->w-1, vulture_screen->h-1);
 
-	vulture_invalidate_region(abs_x, abs_y, w, h);
-
 	return true;
 }
 

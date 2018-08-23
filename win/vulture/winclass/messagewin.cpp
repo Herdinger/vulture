@@ -74,20 +74,6 @@ bool messagewin::draw()
 	refresh_x = refresh_y = 99999;
 	refresh_h = refresh_w = 0;
 
-	/* repaint background and free it */
-	if (background) {
-		vulture_put_img(abs_x, abs_y, background);
-		SDL_FreeSurface(background);
-		background = NULL;
-
-		/* we need these values, so that we can refresh the larger
-		* even if the window shrinks during the redraw */
-		refresh_x = abs_x;
-		refresh_y = abs_y;
-		refresh_w = w;
-		refresh_h = h;
-	}
-
 	num_messages = 0;
 	h = 0;
 	w = 0;
@@ -109,10 +95,6 @@ bool messagewin::draw()
 	x = (parent->w - w) / 2;
 	abs_x = parent->abs_x + x;
 	abs_y = parent->abs_y;
-
-	/* save new background */
-	background = vulture_get_img(abs_x, abs_y,
-						abs_x + w-1, abs_y + h-1);
 
 
 	/* shade the message area */
@@ -150,9 +132,6 @@ bool messagewin::draw()
 		refresh_x = abs_x;
 	}
 	refresh_y = (refresh_y < abs_y) ? refresh_y : abs_y;
-
-	vulture_invalidate_region(refresh_x, refresh_y, refresh_w, refresh_h);
-
 	return false;
 }
 

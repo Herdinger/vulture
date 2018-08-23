@@ -38,11 +38,11 @@ bool button::draw()
 {
 	int x = abs_x;
 	int y = abs_y;
+    if(selected) {
+        x+=2;
+        y+=2;
+    }
 
-	if (background)
-		/* re-draw background: if the button just became un-pressed
-		* we get messed up graphics otherwise */
-		vulture_put_img(x, y, background);
 
 	int text_start_x, text_start_y;
 
@@ -63,20 +63,6 @@ bool button::draw()
 	} else if (image) {
 		vulture_put_img(x + (w - image->w) / 2, y + (h - image->h)/2, image);
 	}
-
-	if (selected) {
-		/* shift the *entire* image of the button (including borders)
-		* 2px left and down */
-		SDL_Surface *buttonimage = vulture_get_img(x, y, x+w-3, y+h-3);
-
-		vulture_fill_rect(x, y, x + w - 1, y + 1, CLR32_BLACK);
-		vulture_fill_rect(x, y, x + 1, y + h - 1, CLR32_BLACK);      
-		vulture_put_img(x + 2, y + 2, buttonimage);
-
-		SDL_FreeSurface(buttonimage);
-	}
-
-	vulture_invalidate_region(x, y, w, h);
 
 	return false;
 }

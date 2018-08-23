@@ -15,7 +15,6 @@ contextmenu::contextmenu(window *p) : window(p)
 {
 	v_type = V_WINTYPE_CONTEXTMENU;
 	layout_done = false;
-	autobg = true;
 }
 
 
@@ -53,7 +52,6 @@ bool contextmenu::draw()
 
 	vulture_set_draw_region(0, 0, vulture_screen->w-1, vulture_screen->h-1);
 
-	vulture_invalidate_region(x, y, w, h);
 
 	return true;
 }

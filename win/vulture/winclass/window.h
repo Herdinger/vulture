@@ -93,12 +93,10 @@ public:
 	window(window *p);
 	virtual ~window();
 
-	virtual bool draw() = 0;
+	virtual bool draw();
 	virtual void set_caption(std::string str);
 	virtual void hide();
 	virtual void layout() {};
-	virtual void update_background(void);
-	
 	eventresult event_handler(window* target, void* result, SDL_Event* event);
 	virtual eventresult handle_timer_event(window* target, void* result, int time);
 	virtual eventresult handle_mousemotion_event(window* target, void* result, 

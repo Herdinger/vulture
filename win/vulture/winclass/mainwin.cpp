@@ -10,6 +10,8 @@
 #define min(a, b) (((a) < (b)) ? (a) : (b))
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 
+std::vector<mainwin*> mainwin::main_stack;
+
 
 mainwin::mainwin(window *p) : window(p)
 {
@@ -17,12 +19,18 @@ mainwin::mainwin(window *p) : window(p)
 	border_left = vulture_winelem.border_left->w;
 	border_top = vulture_winelem.border_top->h;
 	border_bottom = vulture_winelem.border_bottom->h;
-	autobg = true;
+    main_stack.push_back(this);
+}
+
+mainwin::~mainwin() {
+    main_stack.pop_back();
 }
 
 
 bool mainwin::draw()
 {
+    if(!(*main_stack.rbegin() == this))
+        return false;
 	int x = this->abs_x;
 	int y = this->abs_y;
 	int pos_x, pos_y;
@@ -95,8 +103,6 @@ bool mainwin::draw()
 	if (!caption.empty())
 		vulture_put_text_shadow(V_FONT_HEADLINE, caption, vulture_screen, pos_x, 
 								pos_y, V_COLOR_TEXT, V_COLOR_BACKGROUND);
-
-	vulture_invalidate_region(x, y, w, h);
 
 	return true;
 }

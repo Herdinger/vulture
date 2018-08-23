@@ -44,7 +44,5 @@ bool scrollbar::draw()
 			vulture_winelem.scroll_indicator->h) * scroll_pos) / 8192.0;
 	vulture_put_img(abs_x, pos_y, vulture_winelem.scroll_indicator);
 
-	vulture_invalidate_region(abs_x, abs_y, w, h);
-
 	return false;
 }

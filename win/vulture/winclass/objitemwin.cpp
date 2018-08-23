@@ -18,7 +18,6 @@ objitemwin::objitemwin(window *p, menuitem* mi, std::string cap, char accel, cha
 	v_type = V_WINTYPE_OBJITEM;
 	last_toggled = false;
 	hover = false;
-	autobg = true;
 	w = V_LISTITEM_WIDTH;
 	h = V_LISTITEM_HEIGHT;
 	obj = NULL;
@@ -35,10 +34,6 @@ bool objitemwin::draw()
 	Uint32 textcolor;
 
 	vulture_set_draw_region(x, y, x + w - 1, y + h - 1);
-
-	/* re-set the background to prevent shadings from stacking repatedly until they become solid */
-	if (background)
-		vulture_put_img(x, y, background);
 
 
 	/* hovering gives an item a light blue frame */
@@ -160,7 +155,6 @@ bool objitemwin::draw()
 	/* restore the drawing region */
 	vulture_set_draw_region(0, 0, vulture_screen->w - 1, vulture_screen->h - 1);
 
-	vulture_invalidate_region(x, y, w, h);
 
 	return 0;
 }

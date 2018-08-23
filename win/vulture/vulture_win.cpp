@@ -171,11 +171,9 @@ void vulture_event_dispatcher(void * result, int resulttype, window * topwin)
 	vulture_handle_event(topwin, win, result, &event, &redraw);
 
 	/* draw windows, if necessary */
-	topwin->draw_windows();
+	ROOTWIN->draw_windows();
 	vulture_mouse_draw();
-	vulture_refresh_window_region();
-	vulture_mouse_refresh();
-	vulture_mouse_restore_bg();
+	vulture_refresh();
 
 	while (event_result != V_EVENT_HANDLED_FINAL)
 	{
@@ -183,8 +181,9 @@ void vulture_event_dispatcher(void * result, int resulttype, window * topwin)
 		vulture_wait_event(&event, 100);
 
 		event_result = vulture_event_dispatcher_core(&event, result, topwin);
-
-		SDL_Delay(20);
+        ROOTWIN->draw_windows();
+        vulture_mouse_draw();
+        vulture_refresh();
 	}
 }
 
@@ -202,11 +201,9 @@ int vulture_event_dispatcher_nonblocking(void * result, window * topwin)
 	vulture_mouse_invalidate_tooltip(1);
 
 	/* draw windows, if necessary */
-	topwin->draw_windows();
+	ROOTWIN->draw_windows();
 	vulture_mouse_draw();
-	vulture_refresh_window_region();
-	vulture_mouse_refresh();
-	vulture_mouse_restore_bg();
+	vulture_refresh();
 
 	while (event_result != V_EVENT_HANDLED_FINAL)
 	{
@@ -241,8 +238,6 @@ static int vulture_event_dispatcher_core(SDL_Event * event, void * result, windo
 		* position has nothing to do with keyboard input */
 	if (event->type == SDL_KEYDOWN) {
 		event_result = topwin->event_handler(topwin, result, event);
-		if (event_result == V_EVENT_HANDLED_REDRAW || event_result == V_EVENT_UNHANDLED_REDRAW)
-			redraw = 1;
 	}
 	else {
 		/* find out what window the mouse is over now */
@@ -270,25 +265,6 @@ static int vulture_event_dispatcher_core(SDL_Event * event, void * result, windo
 			return V_EVENT_UNHANDLED;
 
 		event_result = vulture_handle_event(topwin, win, result, event, &redraw);
-	}
-
-	if (redraw)
-		topwin->draw_windows();
-
-	if (redraw || event->type != SDL_TIMEREVENT ||
-		(hovertime > HOVERTIMEOUT && hovertime_prev < HOVERTIMEOUT))
-		vulture_mouse_draw();
-
-	/* refresh all regions (except mouse & tt) needing a refresh here,
-		* do NOT do so in draw() functions */
-	if (redraw || vulture_invrects_num)
-		vulture_refresh_window_region();
-
-	if (redraw || event->type != SDL_TIMEREVENT ||
-		(hovertime > HOVERTIMEOUT && hovertime_prev < HOVERTIMEOUT))
-	{
-		vulture_mouse_refresh();
-		vulture_mouse_restore_bg();
 	}
 
 	return event_result;
@@ -370,44 +346,6 @@ void vulture_eventstack_destroy(void)
 }
 
 
-void vulture_invalidate_region(int x , int y, int w, int h)
-{
-	int i;
-
-	/* look at known invalid rects */
-	for (i = 0; i < vulture_invrects_num; i++)
-	{
-		if (x > vulture_invrects[i].x &&
-			y > vulture_invrects[i].y &&
-			x + w < vulture_invrects[i].x + vulture_invrects[i].w &&
-			y + h < vulture_invrects[i].y + vulture_invrects[i].h)
-			/* new invalid region is fully inside an already known one */
-			return;
-
-		else if (x < vulture_invrects[i].x &&
-				y < vulture_invrects[i].y &&
-				x + w > vulture_invrects[i].x + vulture_invrects[i].w &&
-				y + h > vulture_invrects[i].y + vulture_invrects[i].h)
-				/* old invalid region is fully inside new one;
-				* stop searching here and reuse this entry in the array */
-			break;
-	}
-
-	if (i >= vulture_invrects_max)
-	{
-		vulture_invrects = (SDL_Rect *)realloc(vulture_invrects, (vulture_invrects_max + 16) * sizeof(SDL_Rect));
-		vulture_invrects_max += 16;
-	}
-
-	if (i == vulture_invrects_num)
-		vulture_invrects_num++;
-
-	vulture_invrects[i].x = x;
-	vulture_invrects[i].y = y;
-	vulture_invrects[i].w = w;
-	vulture_invrects[i].h = h;
-}
-
 
 /* refresh invalid regions */
 void vulture_refresh_window_region(void)
@@ -449,11 +387,10 @@ void vulture_win_resize(int width, int height)
 	vulture_event dummy;
 	bool descend = true;
 
-  if (levwin == NULL)
+  if (ROOTWIN == NULL)
   {
 		SDL_FillRect(vulture_screen, NULL, CLR32_BLACK);
-		vulture_invalidate_region(0,0,vulture_screen->w,vulture_screen->h);
-    vulture_refresh_window_region();
+    vulture_refresh();
   }
 
 	vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "vulture_win_resize(%d,%d) {entry}\n", width, height);
@@ -483,12 +420,9 @@ void vulture_win_resize(int width, int height)
 	}
 	while (current != topwin);
 
-	/* redraw everything */
-  if (levwin != NULL)
-    levwin->force_redraw();
 
-	topwin->draw_windows();
-	vulture_refresh_window_region();
+	ROOTWIN->draw_windows();
+    vulture_refresh();
 }
 
 

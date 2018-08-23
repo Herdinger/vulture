@@ -66,9 +66,6 @@ bool minimap::draw()
 	if (!minimapbg)
 		return false;
 		
-	if (this->background)
-		vulture_put_img(abs_x, abs_y, background);
-
 	for (map_y = 0; map_y < ROWNO; map_y++)
 	{
 		for (map_x = 1; map_x < COLNO; map_x++)
@@ -147,9 +144,6 @@ bool minimap::draw()
 	}
 
 	vulture_put_img(abs_x, abs_y, minimapbg);
-
-	vulture_invalidate_region(abs_x, abs_y, w, h);
-
 	return false;
 }
 

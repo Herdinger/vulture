@@ -163,7 +163,7 @@ else
 	SDL_CONFIG = sdl-config
 	SDLMAIN = -lSDLmain
 endif
-VULTURECFLAGS = -Wall -g -I /opt/local/include
+VULTURECFLAGS = -std=c++11 -Wall -g $(shell $(SDL_CONFIG) --cflags) 
 CFLAGS = -g -I../include -I ../win/vulture $(shell $(SDL_CONFIG) --cflags) -DVULTURE_NETHACK -DVULTURE_NETHACK_3_6_0
 LFLAGS = 
 
@@ -172,7 +172,7 @@ LFLAGS =
 # the C++ libraries linked in.
 CXXFLAGS = $(CFLAGS) -I. -I$(QTDIR)/include
 CXX=g++
-#LINK=g++
+LINK=g++
 #	For cross-compiling, eg. with gcc on Linux (see also CC further up):
 #CXX=arm-linux-g++
 #LINK=arm-linux-gcc
@@ -262,9 +262,6 @@ endif
 
 # SDL libraries for Vulture's Eye
 WINVULTURELIB = `$(SDL_CONFIG) --libs` $(SDLMAIN) -lSDL_mixer  -lSDL_ttf -logg -lvorbis -ltheoradec -lpthread
-ifeq ($(OS),Darwin)
-	WINVULTURELIB += -lstdc++
-endif
 
 #
 # libraries for X11
@@ -505,8 +502,10 @@ monst.o:
 objects.o:
 	$(CC) $(CFLAGS) -c objects.c
 	@rm -f $(MAKEDEFS)
-	
-../win/vulture/build_nethack_3_6_0/vulture.o: objects.o monst.o ../include/date.h ../win/vulture/*
+
+FORCE:
+
+../win/vulture/build_nethack_3_6_0/vulture.o: ../include/date.h FORCE
 	@$(MAKE) -C ../win/vulture/ VARIANT_NAME=nethack VARIANT_VERSION=3.6.0 BASECFLAGS="$(VULTURECFLAGS)"
 
 ../win/vulture/build_nethack_3_6_0/theoraplay.o: ../win/vulture/vendor/theoraplay/theoraplay.c

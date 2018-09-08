@@ -3,21 +3,7 @@
 ifdef VARIANT_NAME
 ifdef VARIANT_VERSION
 
-ifndef CXX
-	CXX := g++
-endif
-
-LD := ld
-
-ifndef SDL_CFLAGS
-	ifndef SDL_CONFIG
-		OS := $(shell uname -s)
-		SDL_CONFIG := sdl-config
-	endif
-	SDL_CFLAGS = $(shell $(SDL_CONFIG) --cflags)
-endif
-
-CFLAGS := $(BASECFLAGS) $(SDL_CFLAGS) -DUSE_SDL_SYSCALLS -g3 -Wall
+CFLAGS := $(BASECFLAGS) -g3 -Wall
 
 VARIANT_VERSION_CLEANED := $(shell echo $(VARIANT_VERSION)|tr . _)
 BUILDDIR := build_$(VARIANT_NAME)_$(VARIANT_VERSION_CLEANED)
@@ -46,20 +32,16 @@ VOBJ += $(BUILDDIR)/vulture_tileconfig.parser.o $(BUILDDIR)/vulture_tileconfig.l
 # how to genereate dependency info
 define gendeps
 	@mkdir -p $(BUILDDIR)/winclass
-	@set -e; rm -f $@; \
-	 $(CXX) -MM $(CFLAGS) $(INCLUDE) $< > $@.$$$$; \
-	 sed 's,\($*\)\.o[ :]*,$(BUILDDIR)/\1.o $@ : ,g' < $@.$$$$ > $@; \
-	 rm -f $@.$$$$
+	@$(CXX) -MM -MF $@ -MT '$(subst .d,.o, $@) $@' $(CFLAGS) $(INCLUDE) $<
 endef
 
 
 .PHONY : all
 all: $(OUTPUT_OBJ)
-	@echo finished building the files for the vulture interface
 
 $(OUTPUT_OBJ): $(VOBJ)
 	@echo combining objects to $@
-	@$(CXX) -nostdlib -Xlinker -r $(VOBJ) -lstdc++ -o $(OUTPUT_OBJ)
+	@$(CXX) -Xlinker -r $(VOBJ) -o $(OUTPUT_OBJ)
 
 $(BUILDDIR)/vulture_tileconfig.parser.cpp $(BUILDDIR)/vulture_tileconfig.parser.h: vulture_tileconfig.parser.y
 	@echo generating parser
@@ -95,9 +77,7 @@ $(BUILDDIR)/%.d: %.cpp
 #       too, if necessary. Normally monst.o will already exist when we get here,
 #       but it may be useful when testing tiletrans...
 %.o $(BUILDDIR)/%.o: %.cpp
-	@echo compiling $<
 	@mkdir -p $(BUILDDIR)/winclass
-	echo `pwd`
 	$(CXX) $(CFLAGS) $(INCLUDE) -c $< -o $@
 	
 

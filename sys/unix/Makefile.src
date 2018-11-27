@@ -156,15 +156,11 @@ GNOMEINC=-I/usr/lib/glib/include -I/usr/lib/gnome-libs/include -I../win/gnome
 
 # VULTURECFLAGS will be passed to the sub-makefile for vulture
 OS = $(shell uname -s)
-ifeq ($(OS),FreeBSD)
-	SDL_CONFIG = sdl11-config
-	SDLMAIN = -lSDLmain-1.1
-else
-	SDL_CONFIG = sdl-config
-	SDLMAIN = -lSDLmain
-endif
-VULTURECFLAGS = -std=c++11 -Wall -g $(shell $(SDL_CONFIG) --cflags) 
-CFLAGS = -g -I../include -I ../win/vulture $(shell $(SDL_CONFIG) --cflags) -DVULTURE_NETHACK -DVULTURE_NETHACK_3_6_0
+SDL_CONFIG = sdl-config
+SDL_CFLAGS = $(shell $(SDL_CONFIG) --cflags)
+SDL_LIBS = $(shell $(SDL_CONFIG) --libs) -lSDL_mixer  -lSDL_ttf 
+VULTURECFLAGS = -std=c++11 -Wall -g $(SDL_CFLAGS)
+CFLAGS = -g -I../include -I ../win/vulture -DVULTURE_NETHACK -DVULTURE_NETHACK_3_6_0
 LFLAGS = 
 
 # The Qt and Be window systems are written in C++, while the rest of
@@ -261,7 +257,7 @@ else
 endif
 
 # SDL libraries for Vulture's Eye
-WINVULTURELIB = `$(SDL_CONFIG) --libs` $(SDLMAIN) -lSDL_mixer  -lSDL_ttf -logg -lvorbis -ltheoradec -lpthread
+WINVULTURELIB = $(SDL_LIBS) -logg -lvorbis -ltheoradec -lpthread
 
 #
 # libraries for X11
@@ -649,7 +645,7 @@ ioctl.o: ../sys/share/ioctl.c $(HACK_H) ../include/tcap.h
 unixtty.o: ../sys/share/unixtty.c $(HACK_H)
 	$(CC) $(CFLAGS) -c ../sys/share/unixtty.c
 unixmain.o: ../sys/unix/unixmain.c $(HACK_H) ../include/dlb.h
-	$(CC) $(CFLAGS) -c ../sys/unix/unixmain.c
+	$(CC) $(CFLAGS) $(SDL_CFLAGS) -c ../sys/unix/unixmain.c
 unixunix.o: ../sys/unix/unixunix.c $(HACK_H)
 	$(CC) $(CFLAGS) -c ../sys/unix/unixunix.c
 unixres.o: ../sys/unix/unixres.c $(CONFIG_H)

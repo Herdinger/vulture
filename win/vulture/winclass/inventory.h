@@ -34,6 +34,7 @@ public:
 	                                       int mouse_x, int mouse_y, int button, int state);
 	virtual eventresult handle_keydown_event(window* target, void* result, int sym, int mod, int unicode);
 	virtual eventresult handle_resize_event(window* target, void* result, int res_w, int res_h);
+	virtual eventresult handle_other_event(window* target, void* result, SDL_Event* event);
 	virtual void layout();
 	
 private:

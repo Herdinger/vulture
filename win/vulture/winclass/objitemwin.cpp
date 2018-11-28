@@ -190,16 +190,9 @@ eventresult objitemwin::handle_other_event(window* target, void* result, SDL_Eve
 			return V_EVENT_HANDLED_REDRAW;
 		}
 		return V_EVENT_HANDLED_NOREDRAW;
-	}
-	
-	return V_EVENT_UNHANDLED;
-}
-
-
-eventresult objitemwin::handle_mousebuttonup_event(window* target, void* result,
-                                int mouse_x, int mouse_y, int button, int state)
-{
-	if (button == SDL_BUTTON_WHEELUP || button == SDL_BUTTON_WHEELDOWN)
-		hover = false;
-	return V_EVENT_UNHANDLED;
+    } else if(event->type == SDL_MOUSEWHEEL && (event->wheel.y != 0)) {
+        hover = false;
+    }
+    
+    return V_EVENT_UNHANDLED;
 }

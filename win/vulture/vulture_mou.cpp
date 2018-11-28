@@ -273,14 +273,15 @@ void vulture_mouse_set_tooltip(std::string str)
 		length = vulture_text_length(V_FONT_TOOLTIP, str) + 6;
 		height = vulture_text_height(V_FONT_TOOLTIP, str) + 6;
 
-		vulture_tooltip.tip = SDL_CreateRGBSurface(SDL_SWSURFACE | SDL_SRCALPHA,
+		vulture_tooltip.tip = SDL_CreateRGBSurface(0,
 				length, height, vulture_px_format->BitsPerPixel,
 				vulture_px_format->Rmask,
 				vulture_px_format->Gmask,
 				vulture_px_format->Bmask,
 				vulture_px_format->Amask);
+        //SDL_SetSurfaceBlendMode(vulture_tooltip.tip, SDL_BLENDMODE_ADD);
 
-		SDL_FillRect(vulture_tooltip.tip, NULL, tooltipcolor);
+        SDL_FillRect(vulture_tooltip.tip, NULL, tooltipcolor);
 		vulture_rect_surface(vulture_tooltip.tip, 0, 0, length-1, height-1, V_COLOR_BACKGROUND);
 		vulture_put_text(V_FONT_TOOLTIP, str, vulture_tooltip.tip,
 						3, 3, V_COLOR_BACKGROUND);

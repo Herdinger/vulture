@@ -286,32 +286,33 @@ int vulture_numpad_to_hjkl(int cmd_key, int shift)
 
 
 /* convert sdl keycodes so that nethack can use them */
-int vulture_make_nh_key(int sym, int mod, int ch)
+int vulture_make_nh_key(int sym, int mod)
 {
 	int shift = mod & KMOD_SHIFT;
 	int ctrl = mod & KMOD_CTRL;
 	int alt = mod & KMOD_ALT;
+    //Keycodes mostly map directry to their ascii counterpart, when not we convert to the encoding used by nethack
 
-	if (ch=='!')
+    if (sym == SDLK_EXCLAIM)
 		return 0; // damn shell thing :/
 
 	/* ctrl+z (suspend) should be disabled in vulture_conf.h, but let'e be sure... */
-	if ((ctrl && ch == 'z') || (ch == ('z' - ('a' - 1))))
+	if (ctrl && sym == SDLK_z)
 		return 0; // lets just ignore this nasty lil bugger...
 
-	if (ctrl && ch >= 'a' && ch < 'z')
-		return ch - ('a' - 1);
+	if (ctrl && sym >= SDLK_a && sym <= SDLK_z)
+		return sym - ('a' - 1);
 
-	if (alt && ch >= 'a' && ch <= 'z')
-		return (0x80 | (ch));
+	if (alt && sym >= SDLK_a && sym <= SDLK_z)
+		return (0x80 | sym );
 
-	if (ch >= 'a' && ch <= 'z') {
-		if (shift)
-			ch += 'A'-'a';
-		return ch;
-	}
+    if (sym >= SDLK_a && sym <= SDLK_z) {
+        if (shift)
+            sym += 'A' - 'a';
+        return sym;
+    }
 
-	switch (sym) {
+    switch (sym) {
 		case SDLK_BACKSPACE: return '\b';
 		case SDLK_KP_ENTER:
 		case SDLK_RETURN: return '\n';
@@ -319,32 +320,32 @@ int vulture_make_nh_key(int sym, int mod, int ch)
 		case SDLK_TAB: return '\t';
 
 		/* make sure the keypad and arrow keys work no matter which options are set */
-		case SDLK_KP8:
+		case SDLK_KP_8:
 		case SDLK_UP:
 			return vulture_numpad_to_hjkl('8', shift);
 
-		case SDLK_KP2:
+		case SDLK_KP_2:
 		case SDLK_DOWN:
 			return vulture_numpad_to_hjkl('2', shift);
 
-		case SDLK_KP4:
+		case SDLK_KP_4:
 		case SDLK_LEFT:
 			return vulture_numpad_to_hjkl('4', shift);
 
-		case SDLK_KP6:
+		case SDLK_KP_6:
 		case SDLK_RIGHT:
 			return vulture_numpad_to_hjkl('6', shift);
 
-		case SDLK_KP7:
+		case SDLK_KP_7:
 			return vulture_numpad_to_hjkl('7', shift);
 
-		case SDLK_KP9:
+		case SDLK_KP_9:
 			return vulture_numpad_to_hjkl('9', shift);
 
-		case SDLK_KP1:
+		case SDLK_KP_1:
 			return vulture_numpad_to_hjkl('1', shift);
 
-		case SDLK_KP3:
+		case SDLK_KP_3:
 			return vulture_numpad_to_hjkl('3', shift);
 
 		/* prevent "enumeration value ... not handled in switch" warning */
@@ -352,8 +353,10 @@ int vulture_make_nh_key(int sym, int mod, int ch)
 	}
 
 	/* high-bit characters are not useable */
-	if ((ch > 0) && (ch < 0x7e))
-		return ch;
+	if ((sym > 0) && (sym < 0x7e)){
+        vulture_write_log(V_LOG_ERROR, __FILE__, __LINE__, "Unhandled character %d!\n", sym);
+        return sym;
+        }
 
 	return 0;
 }

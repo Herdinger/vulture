@@ -72,14 +72,14 @@ eventresult anykeydialog::handle_keydown_event(window* target, void* result,
 			return V_EVENT_HANDLED_REDRAW;
 
 		default:
-			/* was it an accelerator for one of the buttons? */
-			if (unicode && find_accel(unicode).size() > 0) {
-				*(char*)result = unicode;
+			key = vulture_make_nh_key(sym, mod);
+            //TODO Hack, we have to have a different mapping for our accels
+            //Function keys get lost for example have to research how those get mapped
+            if (find_accel(key).size() > 0) {
+                *(char*)result = key;
 				return V_EVENT_HANDLED_FINAL;
 			}
 
-			/* it isn't, so lets translate it (Stage 1: function keys etc) */
-			key = vulture_make_nh_key(sym, mod, unicode);
 
 			if (!key)
 				/* no translation, it must have been a function key */

@@ -401,9 +401,10 @@ void vulture_win_resize(int width, int height)
 
 	current = topwin = ROOTWIN;
 
-	event.type = SDL_VIDEORESIZE;
-	event.resize.w = width;
-	event.resize.h = height;
+	event.type = SDL_WINDOWEVENT;
+    event.window.event = SDL_WINDOWEVENT_SIZE_CHANGED;
+    event.window.data1 = width;
+	event.window.data2 = height;
 
 	current->event_handler(current, &dummy, &event);
 

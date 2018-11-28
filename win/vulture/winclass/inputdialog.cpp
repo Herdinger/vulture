@@ -109,15 +109,17 @@ eventresult inputdialog::handle_keydown_event(window* target, void* result,
 			return V_EVENT_HANDLED_REDRAW;
 
 		default:
-			/* add characters up to a maximum of 256 */
-			if (text.length() < 256 && vulture_text_length(V_FONT_MENU, text) <
-				(first_child->w - 10) && isprint(unicode)) {
-				text.push_back((char)unicode);
-				first_child->need_redraw = 1;
-			}
-			/* only the child needs to be redrawn */
-			return V_EVENT_HANDLED_REDRAW;
-	}
+            //TODO Horrible hack
+            char key = vulture_make_nh_key(sym, mod);
+            /* add characters up to a maximum of 256 */
+            if (text.length() < 256 && vulture_text_length(V_FONT_MENU, text) <
+                (first_child->w - 10) && isprint(key)) {
+                text.push_back(key);
+                first_child->need_redraw = 1;
+            }
+            /* only the child needs to be redrawn */
+            return V_EVENT_HANDLED_REDRAW;
+    }
 	return V_EVENT_HANDLED_NOREDRAW;
 }
 

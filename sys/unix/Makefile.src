@@ -156,12 +156,12 @@ GNOMEINC=-I/usr/lib/glib/include -I/usr/lib/gnome-libs/include -I../win/gnome
 
 # VULTURECFLAGS will be passed to the sub-makefile for vulture
 OS = $(shell uname -s)
-SDL_CONFIG = sdl-config
+SDL_CONFIG = sdl2-config
 SDL_CFLAGS = $(shell $(SDL_CONFIG) --cflags)
-SDL_LIBS = $(shell $(SDL_CONFIG) --libs) -lSDL_mixer  -lSDL_ttf 
-VULTURECFLAGS = -std=c++11 -Wall -g $(SDL_CFLAGS)
+SDL_LIBS = $(shell $(SDL_CONFIG) --libs) -lSDL2_mixer  -lSDL2_ttf
+VULTURECFLAGS = -std=c++11 -Wall -g $(SDL_CFLAGS) -fsanitize=undefined
 CFLAGS = -g -I../include -I ../win/vulture -DVULTURE_NETHACK -DVULTURE_NETHACK_3_6_0
-LFLAGS = 
+LFLAGS = -fsanitize=undefined -fsanitize=address
 
 # The Qt and Be window systems are written in C++, while the rest of
 # NetHack is standard C.  If using Qt, uncomment the LINK line here to get

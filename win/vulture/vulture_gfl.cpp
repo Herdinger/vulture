@@ -70,13 +70,16 @@ SDL_Surface *vulture_load_surface(char *srcbuf, unsigned int buflen)
 
 	if (!img)
         return NULL;
+    //SDL_SetSurfaceBlendMode(img, SDL_BLENDMODE_ADD);
 
-	convert = SDL_DisplayFormatAlpha(img);
+    /*TODO update with info from renderer
+    convert = SDL_DisplayFormatAlpha(img);
 
 	SDL_FreeSurface(img);
 	img = convert;
+    */
 
-	return img;
+    return img;
 }
 
 

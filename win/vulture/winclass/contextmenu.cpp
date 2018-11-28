@@ -133,7 +133,7 @@ eventresult contextmenu::handle_mousebuttonup_event(window* target, void* result
 }
 
 
-eventresult contextmenu::handle_keydown_event(window* target, void* result, SDL_keysym keysym)
+eventresult contextmenu::handle_keydown_event(window* target, void* result, SDL_Keysym keysym)
 {
 	*(int*)result = 0;
 	return V_EVENT_HANDLED_FINAL;

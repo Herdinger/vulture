@@ -12,6 +12,7 @@ extern "C" {
 #include "vulture_txt.h"
 #include "vulture_mou.h"
 #include "vulture_tile.h"
+#include "vulture_gen.h"
 
 #include "menuwin.h"
 #include "scrollwin.h"
@@ -120,11 +121,9 @@ eventresult menuwin::handle_keydown_event(window* target, void* result, int sym,
 {
 	optionwin *opt;
 	window *winelem;
-	int key;
 	char * str_to_find;
 
 	need_redraw = 1;
-	key = unicode;
 	switch (sym)
 	{
 		case SDLK_RETURN:
@@ -137,42 +136,29 @@ eventresult menuwin::handle_keydown_event(window* target, void* result, int sym,
 			*(int*)result = (select_how == PICK_NONE) ? V_MENU_ACCEPT : V_MENU_CANCEL;
 			return V_EVENT_HANDLED_FINAL;
 
-		/* handle menu control keys */
-		case SDLK_PAGEUP:   key = MENU_PREVIOUS_PAGE; /* '<' */ break; 
-		case SDLK_PAGEDOWN: key = MENU_NEXT_PAGE;     /* '>' */ break;
-		case SDLK_HOME:     key = MENU_FIRST_PAGE;    /* '^' */ break;
-		case SDLK_END:      key = MENU_LAST_PAGE;     /* '|' */ break;
-
 		/* scroll via arrow keys */
-		case SDLK_KP2:
+		case SDLK_KP_2:
 		case SDLK_DOWN:
 			return scrollarea->scrollto(V_SCROLL_LINE_REL, 1);
 
-		case SDLK_KP8:
+		case SDLK_KP_8:
 		case SDLK_UP:
 			return scrollarea->scrollto(V_SCROLL_LINE_REL, -1);
 
 		case SDLK_BACKSPACE:
 			count = count / 10;
 
-		default: break;
-	}
-
-	if (!key)
-		/* a function key, but not one we recognize, wass pressed */
-		return V_EVENT_HANDLED_NOREDRAW;
-
-	switch (key)
-	{
+        case SDLK_PAGEUP:
 		case MENU_PREVIOUS_PAGE:
 			return scrollarea->scrollto(V_SCROLL_PAGE_REL, -1);
 
+        case SDLK_PAGEDOWN:
 		case MENU_NEXT_PAGE:
 			return scrollarea->scrollto(V_SCROLL_PAGE_REL, 1);
-
+        case SDLK_HOME:
 		case MENU_FIRST_PAGE:
 			return scrollarea->scrollto(V_SCROLL_PAGE_ABS, 0);
-
+        case SDLK_END:
 		case MENU_LAST_PAGE:
 			return scrollarea->scrollto(V_SCROLL_PAGE_ABS, 9999);
 
@@ -186,7 +172,7 @@ eventresult menuwin::handle_keydown_event(window* target, void* result, int sym,
 			for (winelem = scrollarea->first_child; winelem; winelem = winelem->sib_next) {
 				if (winelem->v_type == V_WINTYPE_OPTION) {
 					opt = static_cast<optionwin*>(winelem);
-					opt->item->selected = (key == MENU_SELECT_ALL);
+					opt->item->selected = (sym == MENU_SELECT_ALL);
 					opt->item->count = -1;
 				}
 			}
@@ -219,7 +205,7 @@ eventresult menuwin::handle_keydown_event(window* target, void* result, int sym,
 			for (winelem = scrollarea->first_child; winelem; winelem = winelem->sib_next) {
 				if (winelem->v_type == V_WINTYPE_OPTION && winelem->visible) {
 					opt = static_cast<optionwin*>(winelem);
-					opt->item->selected = (key == MENU_SELECT_PAGE);
+					opt->item->selected = (sym == MENU_SELECT_PAGE);
 					opt->item->count = -1;
 				}
 			}
@@ -260,12 +246,13 @@ eventresult menuwin::handle_keydown_event(window* target, void* result, int sym,
 
 		default:
 			/* numbers are part of a count */
-			if (select_how == PICK_ANY && key >= '0' && key <= '9') {
-				count = count * 10 + (key - '0');
+			if (select_how == PICK_ANY && sym >= '0' && sym <= '9') {
+				count = count * 10 + (sym - '0');
 				break;
 			}
 		
 			/* try to match the key to an accelerator */
+			int key = vulture_make_nh_key(sym, mod);
       std::vector<window *> targets_found( scrollarea->find_accel( key ) );
       for ( std::vector<window *>::iterator target = targets_found.begin();
             target != targets_found.end();

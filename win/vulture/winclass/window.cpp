@@ -184,14 +184,18 @@ eventresult window::event_handler(window *target, void *result, SDL_Event *event
 
 		case SDL_KEYDOWN:
 			return handle_keydown_event(target, result, event->key.keysym.sym,
-			                  event->key.keysym.mod, event->key.keysym.unicode);
-
-		case SDL_VIDEORESIZE:
-			return handle_resize_event(target, result, event->resize.w, event->resize.h);
-		
+			                  event->key.keysym.mod, 0);
+        case SDL_WINDOWEVENT:
+            if (event->window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
+                return handle_resize_event(target, result, event->window.data1, event->window.data2);
+            }
+            else {
+                return handle_other_event(target, result, event);
+            }
+            break;
 		default:
-			return handle_other_event(target, result, event);
-	}
+            return handle_other_event(target, result, event);
+    }
 
 	return V_EVENT_UNHANDLED;
 }

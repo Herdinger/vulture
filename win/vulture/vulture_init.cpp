@@ -440,18 +440,8 @@ static void vulture_show_intro(std::string introscript_name)
 
 static void vulture_init_colors()
 {
-	/* set up the colors used in the game
-	* the only good way to do this without needing graphics to have been loaded first
-	* is to create a surface here which we then put into display format + alpha ourselves */
-	SDL_Surface * pixel = SDL_CreateRGBSurface(SDL_SWSURFACE | SDL_SRCALPHA, 1, 1, 32,
-								0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000);
-	SDL_Surface * reformatted = SDL_DisplayFormatAlpha(pixel);
+    vulture_px_format = SDL_AllocFormat(SDL_PIXELFORMAT_ARGB8888);
 
-	vulture_px_format = new SDL_PixelFormat;
-	memcpy(vulture_px_format, reformatted->format, sizeof(SDL_PixelFormat));
-
-	SDL_FreeSurface(reformatted);
-	SDL_FreeSurface(pixel);
 
 	CLR32_BLACK      = SDL_MapRGBA(vulture_px_format, 0,0,0, 0xff);
 	CLR32_BLACK_A30  = SDL_MapRGBA(vulture_px_format, 0,0,0, 0x50);

@@ -108,7 +108,7 @@ eventresult dirdialog::handle_keydown_event(window* target, void* result,
 	if (sym == SDLK_ESCAPE)
 		choice = -1;
 	else
-		choice = vulture_make_nh_key(sym, mod, unicode);
+		choice = vulture_make_nh_key(sym, mod);
 
 	if (!mapwin)
 		choice = vulture_translate_key(choice);

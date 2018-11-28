@@ -29,12 +29,11 @@ messagewin::messagewin(window *p) : window(p)
 
 	v_type = V_WINTYPE_CUSTOM;
 	
-	bg_img = SDL_CreateRGBSurface(SDL_SWSURFACE, 40, 20, 32,
+	bg_img = SDL_CreateRGBSurface(0, 40, 20, 32,
 								vulture_px_format->Rmask,
 								vulture_px_format->Gmask,
 								vulture_px_format->Bmask, 0);
-	SDL_FillRect(bg_img, NULL, CLR32_BLACK);
-	SDL_SetAlpha(bg_img, SDL_SRCALPHA, 128);
+	SDL_FillRect(bg_img, NULL, CLR32_BLACK_A50);
 	
 	/* init message ring buffer */
 	memset(message_ages, 0, V_MESSAGEBUF_SIZE * sizeof(int));

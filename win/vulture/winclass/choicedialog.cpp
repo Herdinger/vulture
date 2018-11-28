@@ -6,6 +6,7 @@
 #include "vulture_mou.h"
 #include "vulture_txt.h"
 #include "vulture_tile.h"
+#include "vulture_gen.h"
 
 #include "choicedialog.h"
 #include "button.h"
@@ -116,9 +117,11 @@ eventresult choicedialog::handle_keydown_event(window* target, void* result, int
 			break;
 
 		default:
-			if (find_accel((char)unicode).size()>0) {
-				*(char*)result = (char)unicode;
-				return V_EVENT_HANDLED_FINAL;
+            //TODO Hack
+            char key = vulture_make_nh_key(sym, mod);
+            if (find_accel(key).size()>0) {
+                *(char*)result = key;
+                return V_EVENT_HANDLED_FINAL;
 			}
 	}
 	return V_EVENT_HANDLED_NOREDRAW;

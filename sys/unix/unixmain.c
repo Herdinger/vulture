@@ -4,6 +4,10 @@
 
 /* main.c - Unix NetHack */
 
+#ifdef VULTURE_GRAPHICS
+# include "SDL.h"
+#endif
+
 #include "hack.h"
 #include "dlb.h"
 
@@ -13,10 +17,6 @@
 #include <pwd.h>
 #ifndef O_RDONLY
 #include <fcntl.h>
-#endif
-
-#ifdef VULTURE_GRAPHICS
-# include "SDL.h"
 #endif
 
 #if !defined(_BULL_SOURCE) && !defined(__sgi) && !defined(_M_UNIX)

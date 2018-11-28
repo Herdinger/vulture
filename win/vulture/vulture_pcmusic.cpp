@@ -187,7 +187,7 @@ void pc_speaker(struct obj *instr, char *tune)
 
 	rw = SDL_RWFromMem(pcmusic_instrument_buffer, pcmusic_instrument_buffer_size);
 	if ( pcmusic_instrument_music != NULL ) Mix_FreeMusic( pcmusic_instrument_music );
-	pcmusic_instrument_music = Mix_LoadMUS_RW( rw );
+	pcmusic_instrument_music = Mix_LoadMUS_RW( rw , false);
 	if ( pcmusic_instrument_music != NULL ) Mix_PlayMusic( pcmusic_instrument_music, 0);
 
 	Mix_HookMusicFinished( &music_finished );

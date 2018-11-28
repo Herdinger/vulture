@@ -94,7 +94,7 @@ typedef struct mi {
 #define MENU_INVERT_ALL         '@'
 #define MENU_SELECT_PAGE        ','
 #define MENU_UNSELECT_PAGE      '\\'
-#define MENU_INVERT_PAGE        '~'
+#define MENU_INVERT_PAGE        '_' //remapped from ~ because we still don't have proper text handling
 #define MENU_SEARCH             ':'
 /* clang-format on */
 

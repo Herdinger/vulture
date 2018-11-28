@@ -607,7 +607,7 @@ eventresult levelwin::handle_keydown_event(window* target, void* result, int sym
 	}
 
 	/* all other keys are converted and passed to the core */
-	key = vulture_make_nh_key(sym, mod, unicode);
+	key = vulture_make_nh_key(sym, mod);
 
 	if (!key)
 		return V_EVENT_HANDLED_NOREDRAW;

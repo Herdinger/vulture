@@ -249,7 +249,7 @@ void vulture_put_tilehighlight(int x, int y, int tile_id)
 
 	pxf = tile->graphic->format;
 
-	highlight = SDL_CreateRGBSurface(SDL_SWSURFACE | SDL_SRCALPHA, tile->graphic->w, tile->graphic->h,
+	highlight = SDL_CreateRGBSurface(0, tile->graphic->w, tile->graphic->h,
 									pxf->BitsPerPixel, pxf->Rmask, pxf->Gmask, pxf->Bmask, pxf->Amask);
 
 	srcdata = (unsigned int *)tile->graphic->pixels;
@@ -306,13 +306,15 @@ int vulture_load_gametiles(void)
 
 
 	/* create the surfaces used to shade floor tiles */
-	vulture_ftshade1 = SDL_CreateRGBSurface(SDL_SWSURFACE | SDL_SRCALPHA, 112, 100, 32,
+	vulture_ftshade1 = SDL_CreateRGBSurface(0, 112, 100, 32,
 								vulture_px_format->Rmask, vulture_px_format->Gmask,
 								vulture_px_format->Bmask, DEF_AMASK);
-	vulture_ftshade2 = SDL_CreateRGBSurface(SDL_SWSURFACE | SDL_SRCALPHA, 112, 100, 32,
+	vulture_ftshade2 = SDL_CreateRGBSurface(0, 112, 100, 32,
 								vulture_px_format->Rmask, vulture_px_format->Gmask,
 								vulture_px_format->Bmask, DEF_AMASK);
-	SDL_FillRect(vulture_ftshade1, NULL, CLR32_BLACK_A30);
+    SDL_SetSurfaceBlendMode(vulture_ftshade1, SDL_BLENDMODE_ADD);
+    SDL_SetSurfaceBlendMode(vulture_ftshade2, SDL_BLENDMODE_ADD);
+    SDL_FillRect(vulture_ftshade1, NULL, CLR32_BLACK_A30);
 	SDL_FillRect(vulture_ftshade2, NULL, CLR32_BLACK_A70);
 
 	return 1;

@@ -19,6 +19,7 @@ extern const char *disrobing;
 #include "vulture_win.h"
 #include "vulture_mou.h"
 #include "vulture_tile.h"
+#include "vulture_gen.h"
 
 #include "inventory.h"
 #include "objitemwin.h"
@@ -264,6 +265,31 @@ eventresult inventory::handle_mousemotion_event(window* target, void* result, in
 	return V_EVENT_HANDLED_NOREDRAW;
 }
 
+eventresult inventory::handle_other_event(window* target, void* result, SDL_Event* event)
+{
+    if(event->type == SDL_MOUSEWHEEL) {
+        if (event->wheel.y > 0) {
+            if (ow_firstcol > 0) {
+                /* scroll inventory backwards */
+                update_invscroll(ow_firstcol - 1);
+                need_redraw = 1;
+                return V_EVENT_HANDLED_REDRAW;
+            }
+            return V_EVENT_HANDLED_NOREDRAW;
+        }
+        else if (event->wheel.y < 0) {
+            if (ow_firstcol + ow_vcols < ow_ncols) {
+                /* scroll inventory forwards */
+                update_invscroll(ow_firstcol + 1);
+                need_redraw = 1;
+                return V_EVENT_HANDLED_REDRAW;
+            }
+            return V_EVENT_HANDLED_NOREDRAW;
+        }
+    }
+    return V_EVENT_UNHANDLED;
+}
+
 
 eventresult inventory::handle_mousebuttonup_event(window* target, void* result,
                                             int mouse_x, int mouse_y, int button, int state)
@@ -288,25 +314,6 @@ eventresult inventory::handle_mousebuttonup_event(window* target, void* result,
 			return context_menu(static_cast<objitemwin*>(target));
 	}
 	
-	if (button == SDL_BUTTON_WHEELUP) {
-		if (ow_firstcol > 0) {
-			/* scroll inventory backwards */
-			update_invscroll(ow_firstcol - 1);
-			need_redraw = 1;
-			return V_EVENT_HANDLED_REDRAW;
-		}
-		return V_EVENT_HANDLED_NOREDRAW;
-	}
-
-	else if (button == SDL_BUTTON_WHEELDOWN) {
-		if (ow_firstcol + ow_vcols < ow_ncols) {
-			/* scroll inventory forwards */
-			update_invscroll(ow_firstcol + 1);
-			need_redraw = 1;
-			return V_EVENT_HANDLED_REDRAW;
-		}
-		return V_EVENT_HANDLED_NOREDRAW;
-	}
 
 	else if (button == SDL_BUTTON_LEFT) {
 		if (this == target)
@@ -384,10 +391,9 @@ eventresult inventory::handle_mousebuttonup_event(window* target, void* result,
 eventresult inventory::handle_keydown_event(window* target, void* result, int sym, int mod, int unicode)
 {
 	window *winelem;
-	int itemcount, colno, key;
+	int itemcount, colno;
 
 	need_redraw = 1;
-	key = unicode;
 	switch (sym) {
 		case SDLK_RETURN:
 		case SDLK_KP_ENTER:
@@ -399,20 +405,17 @@ eventresult inventory::handle_keydown_event(window* target, void* result, int sy
 			*(int*)result = (select_how == PICK_NONE) ? V_MENU_ACCEPT : V_MENU_CANCEL;
 			return V_EVENT_HANDLED_FINAL;
 
-		/* handle menu control keys */
-		case SDLK_HOME:     key = MENU_FIRST_PAGE;    /* '^' */ break;
-		case SDLK_END:      key = MENU_LAST_PAGE;     /* '|' */ break;
 
 		/* scroll via arrow keys */
 		case SDLK_PAGEDOWN:
-		case SDLK_KP2:
+		case SDLK_KP_2:
 		case SDLK_DOWN:
 		case SDLK_RIGHT:
 			update_invscroll(ow_firstcol + 1);
 			return V_EVENT_HANDLED_REDRAW;
 
 		case SDLK_PAGEUP:
-		case SDLK_KP8:
+		case SDLK_KP_8:
 		case SDLK_UP:
 		case SDLK_LEFT:
 			update_invscroll(ow_firstcol - 1);
@@ -423,14 +426,6 @@ eventresult inventory::handle_keydown_event(window* target, void* result, int sy
 				ow_lasttoggled->item->count = ow_lasttoggled->item->count / 10;
 			return V_EVENT_HANDLED_REDRAW;
 
-		default: break;
-	}
-
-	if (!key)
-		/* a function or modifier key, but not one we recognize, was pressed */
-		return V_EVENT_HANDLED_NOREDRAW;
-
-	switch (key) {
 		case MENU_PREVIOUS_PAGE:
 			update_invscroll(ow_firstcol - 1);
 			return V_EVENT_HANDLED_REDRAW;
@@ -439,10 +434,12 @@ eventresult inventory::handle_keydown_event(window* target, void* result, int sy
 			update_invscroll(ow_firstcol + 1);
 			return V_EVENT_HANDLED_REDRAW;
 
+        case SDLK_HOME:
 		case MENU_FIRST_PAGE:
 			update_invscroll(0);
 			return V_EVENT_HANDLED_REDRAW;
 
+        case SDLK_END:
 		case MENU_LAST_PAGE:
 			update_invscroll(999999);
 			return V_EVENT_HANDLED_REDRAW;
@@ -457,7 +454,7 @@ eventresult inventory::handle_keydown_event(window* target, void* result, int sy
 			for (winelem = first_child; winelem; winelem = winelem->sib_next) {
 				if (winelem->v_type == V_WINTYPE_OBJITEM) {
 					static_cast<objitemwin*>(winelem)->item->selected =
-											(key == MENU_SELECT_ALL);
+											(sym == MENU_SELECT_ALL);
 					static_cast<objitemwin*>(winelem)->item->count = -1;
 				}
 			}
@@ -487,7 +484,7 @@ eventresult inventory::handle_keydown_event(window* target, void* result, int sy
 
 			for (winelem = first_child; winelem; winelem = winelem->sib_next) {
 				if (winelem->v_type == V_WINTYPE_OBJITEM && winelem->visible) {
-					static_cast<objitemwin*>(winelem)->item->selected = (key == MENU_SELECT_PAGE);
+					static_cast<objitemwin*>(winelem)->item->selected = (sym == MENU_SELECT_PAGE);
 					static_cast<objitemwin*>(winelem)->item->count = -1;
 				}
 			}
@@ -537,16 +534,17 @@ eventresult inventory::handle_keydown_event(window* target, void* result, int sy
 				return V_EVENT_HANDLED_FINAL;
 		
 			/* numbers are part of a count */
-			if (key >= '0' && key <= '9' && ow_lasttoggled && 
+			if (sym >= '0' && sym <= '9' && ow_lasttoggled && 
 				ow_lasttoggled->item->count < 1000000) {
 				if (ow_lasttoggled->item->count == -1)
 					ow_lasttoggled->item->count = 0;
-				ow_lasttoggled->item->count = ow_lasttoggled->item->count * 10 + (key - '0');
+				ow_lasttoggled->item->count = ow_lasttoggled->item->count * 10 + (sym - '0');
 
 				return V_EVENT_HANDLED_REDRAW;
 			}
 
 			/* try to match the key to an accelerator */
+			int key = vulture_make_nh_key(sym, mod);
       std::vector<window *> targets_found( find_accel( key ) );
       for ( std::vector<window *>::iterator target = targets_found.begin();
             target != targets_found.end();

@@ -151,8 +151,6 @@ void vulture_read_sound_config(FILE * fp)
 			soundtype = V_EVENT_SOUND_TYPE_MUS;
 		else if ((tok = strstr(configline, "],RSNG,[")) != NULL) /* Random song file found */
 			soundtype = V_EVENT_SOUND_TYPE_RANDOM_SONG;
-		else if ((tok = strstr(configline, "],CDAU,[")) != NULL) /* CD audio track found */
-			soundtype = V_EVENT_SOUND_TYPE_CD_AUDIO;
 		else if ((tok = strstr(configline, "],NONE,[")) != NULL) /* NONE placeholder found */
 			soundtype = V_EVENT_SOUND_TYPE_NONE;
 		else
@@ -188,12 +186,8 @@ void vulture_read_sound_config(FILE * fp)
 
       cur_event_sound.soundtype = soundtype;
 
-      /* If this isn't a CD track, add path to sounds subdirectory before filename */
-      if (soundtype != V_EVENT_SOUND_TYPE_CD_AUDIO)
         cur_event_sound.filenames.push_back(
           vulture_make_filename(soundtype == V_EVENT_SOUND_TYPE_SND ? V_SOUND_DIRECTORY : V_MUSIC_DIRECTORY, "", filename ) );
-      else
-        cur_event_sound.filenames.push_back( filename );
 
       tok = tok2+1;
     }
@@ -206,12 +200,8 @@ void vulture_read_sound_config(FILE * fp)
 
     cur_event_sound.soundtype = soundtype;
 
-    /* If this isn't a CD track, add path to sounds subdirectory before filename */
-    if (soundtype != V_EVENT_SOUND_TYPE_CD_AUDIO)
       cur_event_sound.filenames.push_back(
         vulture_make_filename(soundtype == V_EVENT_SOUND_TYPE_SND ? V_SOUND_DIRECTORY : V_MUSIC_DIRECTORY, "", filename ) );
-    else
-      cur_event_sound.filenames.push_back( filename );
 		
 		vulture_event_sounds.push_back(cur_event_sound);
 	} /* while (fgets(...)) */

@@ -19,7 +19,6 @@ enum vulture_event_sound_enum {
 	V_EVENT_SOUND_TYPE_SND,
 	V_EVENT_SOUND_TYPE_MUS,
 	V_EVENT_SOUND_TYPE_RANDOM_SONG,
-	V_EVENT_SOUND_TYPE_CD_AUDIO,
 };
 
 
@@ -43,7 +42,6 @@ extern void vulture_stop_music(void);
 
 
 extern vulture_cached_sound * vulture_cached_sounds;
-extern SDL_CD *vulture_cdrom;
 extern std::vector<vulture_event_sound> vulture_event_sounds;
 extern int vulture_n_background_songs;
 extern int vulture_intros_finished;

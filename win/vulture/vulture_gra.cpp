@@ -33,15 +33,24 @@ SDL_PixelFormat * vulture_px_format = NULL;
 
 #define FADESTEPS_PER_SEC 20
 
+//TODO rework for rendering api
 static void dofade(double n_secs, SDL_Surface * blendimg)
 {
 	unsigned int cur_clock, end_clock, start_clock, sleeptime, elapsed;
+    SDL_BlendMode oldBlendMode;
+    uint8_t oldAlpha;
 
-	/* calculate how many individual blends we want to do */
+    //save old surface state
+    SDL_GetSurfaceAlphaMod(blendimg, &oldAlpha);
+    SDL_GetSurfaceBlendMode(blendimg, &oldBlendMode);
+    //if we don't have an alpha channel AlphaMod is used as an alpha channel else, they are interpolated.
+
+    /* calculate how many individual blends we want to do */
 	int n_steps = FADESTEPS_PER_SEC * n_secs;
-	SDL_SetAlpha(blendimg, SDL_SRCALPHA, (SDL_ALPHA_OPAQUE / n_steps));
+    SDL_SetSurfaceAlphaMod(blendimg, (SDL_ALPHA_OPAQUE / n_steps));
+    SDL_SetSurfaceBlendMode(blendimg, SDL_BLENDMODE_ADD);
 
-	start_clock = cur_clock = SDL_GetTicks();
+    start_clock = cur_clock = SDL_GetTicks();
 	end_clock = start_clock + (n_secs * 1000);
 	while (cur_clock < end_clock)
 	{
@@ -58,25 +67,31 @@ static void dofade(double n_secs, SDL_Surface * blendimg)
 		cur_clock = SDL_GetTicks();
 	}
 
-	/* ensure that the screen is fully faded in */
-	SDL_SetAlpha(blendimg, 0, 0);
-	SDL_BlitSurface(blendimg, NULL, vulture_screen, NULL);
-	vulture_refresh();
+    //again only valid if we asume blendimg has no alpha channel
+    /* ensure that the screen is fully faded in */
+    SDL_SetSurfaceBlendMode(blendimg, SDL_BLENDMODE_NONE);
+    SDL_SetSurfaceAlphaMod(blendimg, 255);
+    SDL_BlitSurface(blendimg, NULL, vulture_screen, NULL);
+    vulture_refresh();
+
+    //restore old surface state
+    SDL_SetSurfaceAlphaMod(blendimg, oldAlpha);
+    SDL_SetSurfaceBlendMode(blendimg, oldBlendMode);
 }
 
 
 void vulture_fade_out(double n_secs)
 {
 	/* create a screen sized pure black surface without an alpha channel */
-	SDL_Surface * img = SDL_CreateRGBSurface(SDL_SWSURFACE, vulture_screen->w, vulture_screen->h,
-											vulture_px_format->BitsPerPixel,
-											vulture_px_format->Rmask,
-											vulture_px_format->Gmask,
-											vulture_px_format->Bmask, 0);
-	SDL_FillRect(img, NULL, 0);
+    SDL_Surface * img = SDL_CreateRGBSurface(0, vulture_screen->w, vulture_screen->h,
+                                             vulture_px_format->BitsPerPixel,
+                                             vulture_px_format->Rmask,
+                                             vulture_px_format->Gmask,
+                                             vulture_px_format->Bmask, 0);
+    SDL_FillRect(img, NULL, 0);
 
 	/* blend the blackness with the existing image */
-	dofade(n_secs, img);
+    dofade(n_secs, img);
 
 	SDL_FreeSurface(img);
 }
@@ -85,12 +100,12 @@ void vulture_fade_out(double n_secs)
 void vulture_fade_in(double n_secs)
 {
 	/* create a copy of the screen without an alpha-channel (ie an alpha mask == 0) */
-	SDL_Surface * img = SDL_CreateRGBSurface(SDL_SWSURFACE, vulture_screen->w, vulture_screen->h,
-											vulture_px_format->BitsPerPixel,
-											vulture_px_format->Rmask,
-											vulture_px_format->Gmask,
-											vulture_px_format->Bmask, 0);
-	SDL_BlitSurface(vulture_screen, NULL, img, NULL);
+	SDL_Surface * img = SDL_CreateRGBSurface(0, vulture_screen->w, vulture_screen->h,
+                                             vulture_px_format->BitsPerPixel,
+                                             vulture_px_format->Rmask,
+                                             vulture_px_format->Gmask,
+                                             vulture_px_format->Bmask, 0);
+    SDL_BlitSurface(vulture_screen, NULL, img, NULL);
 
 	/* set the screen to all-black and display that */
 	SDL_FillRect(vulture_screen, NULL, CLR32_BLACK);
@@ -177,11 +192,17 @@ void vulture_fill_rect_surface
 
 	/* to get alpha-blending with our rect-filling we create a temp surface, fill that
 	* and then let SDL_BlitSurface do the blending for us */
+        //TODO rework using rendering api
+        //https://www.libsdl.org/release/SDL-1.2.15/docs/html/sdlsetalpha.html
+        //https://wiki.libsdl.org/SDL_SetSurfaceBlendMode?highlight=%28%5CbCategorySurface%5Cb%29%7C%28CategoryEnum%29%7C%28CategoryStruct%29
+        //SRCALPHA seems to indicate an additive mode
 	SDL_Surface * tmp_surface = SDL_CreateRGBSurface(
-			SDL_SWSURFACE | SDL_SRCALPHA,
+			0,
 			srcrect.w,
 			srcrect.h,
 			32, surface->format->Rmask, surface->format->Gmask, surface->format->Bmask, DEF_AMASK);
+
+        //SDL_SetSurfaceBlendMode(tmp_surface, SDL_BLENDMODE_ADD);
 
 	SDL_FillRect(tmp_surface, &srcrect, color);
 	
@@ -231,7 +252,7 @@ SDL_Surface *vulture_get_img_src
 
 
 	toSurface = SDL_CreateRGBSurface(
-			SDL_SWSURFACE | SDL_SRCALPHA,
+			SDL_SWSURFACE,
 			x2+1-x1,
 			y2+1-y1,
 			img_source->format->BitsPerPixel,
@@ -239,6 +260,9 @@ SDL_Surface *vulture_get_img_src
 			img_source->format->Gmask,
 			img_source->format->Bmask,
 			img_source->format->Amask);
+
+        //TODO do we want additive blending here?
+        //SDL_SetSurfaceBlendMode(toSurface, SDL_BLENDMODE_ADD);
 
 	/* we might have been passed coordinates that are outside the source which will blow up our memcpy */
 	int leftoffset = (x1 < 0) ? -x1 : 0;

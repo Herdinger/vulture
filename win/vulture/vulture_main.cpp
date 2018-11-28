@@ -731,7 +731,7 @@ int vulture_nhgetch(void)
 	vulture_wait_key(&event);
 
     vulture_write_log(V_LOG_DEBUG, __FILE__, __LINE__, "end vulture_nhgetch()\n");
-	return vulture_translate_key(vulture_make_nh_key(event.key.keysym.sym, event.key.keysym.mod, event.key.keysym.unicode));
+	return vulture_translate_key(vulture_make_nh_key(event.key.keysym.sym, event.key.keysym.mod));
 }
 
 

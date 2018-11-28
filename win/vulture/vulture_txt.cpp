@@ -75,7 +75,7 @@ int vulture_put_text (int font_id, std::string str, SDL_Surface *dest, int x, in
 	fontcolor.r = (color & dest->format->Rmask) >> dest->format->Rshift;
 	fontcolor.g = (color & dest->format->Gmask) >> dest->format->Gshift;
 	fontcolor.b = (color & dest->format->Bmask) >> dest->format->Bshift;
-	fontcolor.unused = 0;
+	fontcolor.a = 255;
 
 	textsurface = TTF_RenderText_Blended(vulture_fonts[font_id].fontptr,
 	                                     cleaned_str.c_str(), fontcolor);

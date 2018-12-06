@@ -91,6 +91,9 @@ std::vector<window*> window::find_accel(char accel)
   window *child;
   std::vector<window *> accelerators_found;
 
+  if(accel == '\0')
+      return accelerators_found;
+
   for (child = first_child; child; child = child->sib_next)
       if (child->accelerator == accel || child->group_accelerator == accel )
           accelerators_found.push_back( child );

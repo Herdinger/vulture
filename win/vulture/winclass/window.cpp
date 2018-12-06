@@ -7,23 +7,17 @@
 #include "vulture_sdl.h"
 
 window *ROOTWIN = NULL;
-window::window(window *p) : parent(p)
+window::window(window *p) : need_redraw(true), visible(true), caption(""),
+                            accelerator('\0'), group_accelerator('\0'),
+                            abs_x(0), abs_y(0), x(0), y(0),
+                            menu_id_v(nullptr),
+                            first_child(nullptr), last_child(nullptr),
+                            parent(p), sib_next(nullptr), sib_prev(nullptr),
+                            autobg(false), background(nullptr)
 {
-	first_child = last_child = NULL;
-	sib_next = sib_prev = NULL;
-	abs_x = abs_y = x = y = 0;
     w = vulture_screen->w;
     h = vulture_screen->h;
 
-	caption = "";
-	accelerator = '\0';
-	group_accelerator = '\0';
-	background = NULL;
-	autobg = false;
-	menu_id_v = NULL;
-	
-	visible = true;
-	
 	if (parent != NULL)
 	{
 		/* add win to the parent's ll of children */
